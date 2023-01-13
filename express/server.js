@@ -4,6 +4,7 @@ const path = require('path');
 const serverless = require('serverless-http');
 const app = express();
 const bodyParser = require('body-parser');
+const cors = require('cors');
 
 const user = require('./user')
 
@@ -54,6 +55,7 @@ const validateJson = (object) => {
   return result
 }
 
+app.use(cors({origin: '*'}));
 app.use(bodyParser.json());
 app.use('/.netlify/functions/server', router);  // path must route to lambda
 app.use('/', (req, res) => res.sendFile(path.join(__dirname, '../index.html')));
