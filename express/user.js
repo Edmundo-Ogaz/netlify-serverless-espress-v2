@@ -28,7 +28,7 @@ exports.login = (email, password) => {
     }
     return result
   }).catch((error) => {
-    console.error('error', error)
+    console.error('user login error', error)
     return new Error(error)
   })
 }
