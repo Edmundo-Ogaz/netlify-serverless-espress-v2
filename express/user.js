@@ -32,3 +32,26 @@ exports.login = (email, password) => {
     return new Error(error)
   })
 }
+
+exports.create = user => {
+  console.log('user create', user.email)
+  if (!user.email || !user.password || !user.rut) {
+    return null
+  }
+  const client = new faunadb.Client({
+    secret: process.env.FAUNADB_SERVER_SECRET
+  })
+  return client.query(
+    q.Create(
+      q.Collection('user'),
+        { data: user }
+      )
+    )
+    .then((response) => {
+      console.error('user login created')
+      return response.data
+    }).catch((error) => {
+      console.error('user login error', error)
+      return new Error(error)
+    })
+  }

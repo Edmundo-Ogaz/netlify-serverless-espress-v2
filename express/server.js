@@ -16,6 +16,19 @@ router.get('/health', (req, res) => {
   res.json({message: "alive"});
 });
 
+router.post("/user", async (req, res) => {
+  const body = req.body
+  console.log('api user', body.email)
+  if (!body || !body.email || !body.password || !body.rut) {
+    res.json(null);
+    return
+  }
+  const { email, password, rut } = body;
+  const resp = await user.create({ email, password, rut })
+  console.log('api user/login response')
+  res.json(resp);
+});
+
 router.post("/user/login", async (req, res) => {
   const body = req.body
   console.log('api user/login', body.email)
