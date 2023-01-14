@@ -17,12 +17,13 @@ router.get('/health', (req, res) => {
 });
 
 router.post("/user/login", async (req, res) => {
-  console.log('api user/login')
   const body = req.body
+  console.log('api user/login', body.email)
   if (!body || !body.email || !body.password) {
     res.json(null);
     return
   }
+
   const resp = await user.login(body.email, body.password)
   console.log('api user/login response', resp)
   res.json(resp);

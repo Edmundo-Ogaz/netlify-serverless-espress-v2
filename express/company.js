@@ -19,9 +19,8 @@ exports.getAll = () => {
       )
     )
   )
-  .then(async (response) => {
-    return response.data
-  }).catch((error) => {
+  .then(response => response.data)
+  .catch((error) => {
     console.error('error', error)
     return new Error(error)
   })
