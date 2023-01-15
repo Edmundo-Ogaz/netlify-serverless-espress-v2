@@ -16,30 +16,38 @@ router.get('/health', (req, res) => {
   res.json({message: "alive"});
 });
 
-router.post("/user", async (req, res) => {
-  const body = req.body
-  console.log('api user', body.email)
-  if (!body || !body.email || !body.password || !body.rut || !body.companyId || !body.permissionId) {
-    res.json(null);
-    return
+router.post("/user", async (req, res, next) => {
+  try {
+    const body = req.body
+    console.log('api user', body.email)
+    if (!body || !body.rut || !body.firtName || !body.lastName || !body.email || !body.companyId || !body.permissionId) {
+      throw new Error('BAD_REQUEST')
+    }
+    const { rut, firtName, lastName, email, companyId, permissionId } = body;
+    const resp = await user.create({ rut, firtName, lastName, email, companyId, permissionId })
+    console.log('api user response')
+    res.json(resp);
+  } catch(err) {
+    console.error(err)
+    next(err)
   }
-  const { email, password, rut, companyId, permissionId } = body;
-  const resp = await user.create({ email, password, rut, companyId, permissionId })
-  console.log('api user response')
-  res.json(resp);
 });
 
-router.post("/user/login", async (req, res) => {
-  const body = req.body
-  console.log('api user/login', body.email)
-  if (!body || !body.email || !body.password) {
-    res.json(null);
-    return
-  }
+router.post("/user/login", async (req, res, next) => {
+  try {
+    const body = req.body
+    console.log('api user/login', body.email)
+    if (!body || !body.email || !body.password) {
+      throw new Error('BAD_REQUEST')
+    }
 
-  const resp = await user.login(body.email, body.password)
-  console.log('api user/login response', resp)
-  res.json(resp);
+    const resp = await user.login(body.email, body.password)
+    console.log('api user/login response', resp)
+    res.json(resp);
+  } catch(err) {
+    console.error(err)
+    next(err)
+  }
 });
 
 router.get('/company', async (req, res) => {

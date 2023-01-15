@@ -36,7 +36,7 @@ exports.login = (email, password) => {
 exports.create = async user => {
   try {
     console.log('user create', user.email)
-    if (!user.email || !user.password || !user.rut || !user.companyId || !user.permissionId) {
+    if (!user.rut || !user.firtName || !user.lastName || !user.email || !user.companyId || !user.permissionId) {
       return null
     }
     const client = new faunadb.Client({
