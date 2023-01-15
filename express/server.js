@@ -19,13 +19,13 @@ router.get('/health', (req, res) => {
 router.post("/user", async (req, res) => {
   const body = req.body
   console.log('api user', body.email)
-  if (!body || !body.email || !body.password || !body.rut) {
+  if (!body || !body.email || !body.password || !body.rut || !body.companyId || !body.permissionId) {
     res.json(null);
     return
   }
-  const { email, password, rut } = body;
-  const resp = await user.create({ email, password, rut })
-  console.log('api user/login response')
+  const { email, password, rut, companyId, permissionId } = body;
+  const resp = await user.create({ email, password, rut, companyId, permissionId })
+  console.log('api user response')
   res.json(resp);
 });
 

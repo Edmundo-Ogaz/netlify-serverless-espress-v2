@@ -33,25 +33,37 @@ exports.login = (email, password) => {
   })
 }
 
-exports.create = user => {
-  console.log('user create', user.email)
-  if (!user.email || !user.password || !user.rut) {
-    return null
-  }
-  const client = new faunadb.Client({
-    secret: process.env.FAUNADB_SERVER_SECRET
-  })
-  return client.query(
-    q.Create(
-      q.Collection('user'),
-        { data: user }
-      )
-    )
-    .then((response) => {
-      console.error('user login created')
-      return response.data
-    }).catch((error) => {
-      console.error('user login error', error)
-      return new Error(error)
+exports.create = async user => {
+  try {
+    console.log('user create', user.email)
+    if (!user.email || !user.password || !user.rut || !user.companyId || !user.permissionId) {
+      return null
+    }
+    const client = new faunadb.Client({
+      secret: process.env.FAUNADB_SERVER_SECRET
     })
+  
+    const companyRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('company'), user.companyId))))
+    const permissionRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('permission'), user.permissionId))))
+  
+    const response = await client.query(
+      q.Create(
+        q.Collection('user'),
+          {
+            data: {
+              email: user.email,
+              password: user.password,
+              rut: user.rut,
+              company: companyRef,
+              permission: permissionRef
+            },
+          },
+        )
+      )
+      console.error('user created')
+      return response.data
+  } catch(e) {
+    console.error('user error', e)
+    return new Error(e.message)
   }
+}
