@@ -22,6 +22,6 @@ exports.getAll = () => {
   .then(response => response.data)
   .catch((error) => {
     console.error('error', error)
-    return new Error(error)
+    throw new Error(error)
   })
 }

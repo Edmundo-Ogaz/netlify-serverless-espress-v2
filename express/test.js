@@ -1,0 +1,179 @@
+const faunadb = require('faunadb')
+const q = faunadb.query
+
+exports.getAll = () => {
+  console.log('test getAll')
+
+  const client = new faunadb.Client({
+    secret: process.env.FAUNADB_SERVER_SECRET
+  })
+  return client.query(
+    q.Map(
+      q.Paginate(q.Documents(q.Collection('test'))),
+      q.Lambda(
+        'X',
+        {
+          id: q.Select(['ref', 'id'], q.Get(q.Var('X'))),
+          name: q.Select(['data', 'name'], q.Get(q.Var('X')))
+        }
+      )
+    )
+  )
+  .then(response => response.data)
+  .catch((error) => {
+    console.error('test getAll error', error)
+    throw new Error(error)
+  })
+}
+
+exports.assign = async assign => {
+  try {
+    console.log('test assign assign', assign.companyId)
+    if (!assign.testId || !assign.postulantId || !assign.companyId || !assign.analystId || !assign.createdById) {
+      throw new Error('BAD_REQUEST')
+    }
+    const client = new faunadb.Client({
+      secret: process.env.FAUNADB_SERVER_SECRET
+    })
+  
+    const testRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('test'), assign.testId))))
+    const postulantRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('postulant'), assign.postulantId))))
+    const companyRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('company'), assign.companyId))))
+    const analystRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('user'), assign.analystId))))
+    const stateRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('test_state'), process.env.TEST_STATE_PENDING_ID))))
+    const createdByRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('user'), assign.createdById))))
+  
+    const response = await client.query(
+      q.Create(
+        q.Collection('test_postulant'),
+          {
+            data: {
+              test: testRef,
+              postulant: postulantRef,
+              company: companyRef,
+              analyst: analystRef,
+              state: stateRef,
+              createdBy: createdByRef,
+              createdAt: q.Now()
+            },
+          },
+        )
+      )
+      console.log('test assign created')
+      return response.data
+  } catch(e) {
+    console.error('test assign error', e)
+    throw new Error(e.message)
+  }
+}
+
+exports.saveIC = async (id, checks) => {
+  try {
+    console.log('test postulant ic save', id, checks)
+    if (isNaN(id) || !Array.isArray(checks)) {
+      throw new Error('BAD_REQUEST')
+    }
+
+    let binaryAnswer = "000000000000000000000000000000000000000000000000000000000000000000000000000"
+    let preb, post;
+    for (let i of checks) {
+      preb = binaryAnswer.slice(0,i)
+      postb = binaryAnswer.slice(i + 1)
+      binaryAnswer = preb + "1" + postb
+    }
+
+    //SCORE
+    const guide = '101001000000000000110010101000000000010000001000011000101000100010001011000'
+    let correct = 0
+    let notSelected = 0
+    for (let i = 0; i<guide.length; i++) {
+      if (binaryAnswer[i] === guide[i]) {
+        if (binaryAnswer[i] === "1")
+          correct += 1
+        else
+          notSelected += 1
+      }
+    }
+    const omitted = 19 - correct
+    const wrong = 56 - notSelected + omitted
+
+    let score = 0
+      if (wrong <= 1)
+          score = 6
+      else if (2 <= wrong <= 4)
+          score = 5
+      else if (5 <= wrong <= 7)
+          score = 4
+      else if (8 <= wrong <= 12)
+          score = 3
+      else if (13 <= wrong <= 17)
+          score = 2
+      else
+          score = 1
+
+    const client = new faunadb.Client({
+      secret: process.env.FAUNADB_SERVER_SECRET
+    })
+
+    const stateRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('test_state'), process.env.TEST_STATE_DONE_ID))))
+
+    const response = await client.query(
+      q.Update(
+        q.Ref(q.Collection('test_postulant'), id),
+          {
+            data: {
+              answer:{
+                answer: binaryAnswer,
+                score,
+                correct,
+                wrong,
+                omitted,
+              },
+              state: stateRef,
+              updated_at: q.Now(),
+            },
+          },
+      )
+    )
+    console.log('test postulant ic save created')
+    return response.data
+  } catch(e) {
+    console.error('test postulant ic save error', e)
+    throw new Error(e.message)
+  }
+}
+
+exports.findByPostulantAndCompanyAndState = (postulantId, companyId, stateId) => {
+  console.log('test postulant findByPostulatAndCompanyAndState', postulantId, companyId, stateId)
+  if (!postulantId || !companyId || !stateId) {
+    throw new Error('BAD_REQUEST')
+  }
+  const client = new faunadb.Client({
+    secret: process.env.FAUNADB_SERVER_SECRET
+  })
+  return client.query(
+    q.Map(
+      q.Paginate(
+        q.Match(q.Ref("indexes/test_postulant_by_postulant_and_company_and_state"), [
+          q.Ref(q.Collection('postulant'), postulantId),
+          q.Ref(q.Collection('company'), companyId),
+          q.Ref(q.Collection('test_state'), stateId),
+        ])
+      ),
+      q.Lambda("X", {
+        id: q.Select(["ref", "id"], q.Get(q.Var("X"))),
+        postulant: q.Select(["data", "postulant", "id"], q.Get(q.Var("X"))),
+        company: q.Select(["data", "company", "id"], q.Get(q.Var("X"))),
+      })
+    )
+  )
+  .then( response => {
+    console.error('test postulant findById response', response)
+    return response.data
+  }).catch((error) => {
+    console.error('test postulant findById error', error)
+    throw new Error(error)
+  })
+}
+
+
