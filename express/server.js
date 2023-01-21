@@ -201,6 +201,36 @@ router.get("/tests-postulants", async (req, res, next) => {
   }
 });
 
+router.get("/tests/postulants/ic", async (req, res, next) => {
+  try {
+    console.log('api test postulant ic')
+
+    const resp = await test.getAllIc()
+    console.log('api test postulant ic response', resp)
+    res.json(resp)
+  } catch(err) {
+    console.error(err)
+    next(err)
+  }
+});
+
+router.get("/tests/postulants/ic/:id", async (req, res, next) => {
+  try {
+    const id = req.params.id
+    if (isNaN(id)) {
+      throw new Error('BAD_REQUEST')
+    }
+    console.log('api test postulant ic id', id)
+
+    const resp = await test.getIcById(id)
+    console.log('api test postulant ic id response', resp)
+    res.json(resp)
+  } catch(err) {
+    console.error(err)
+    next(err)
+  }
+});
+
 router.patch("/tests/postulants/ic/:id", async (req, res, next) => {
   try {
     const id = req.params.id

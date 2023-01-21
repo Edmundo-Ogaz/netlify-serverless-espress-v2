@@ -176,4 +176,55 @@ exports.findByPostulantAndCompanyAndState = (postulantId, companyId, stateId) =>
   })
 }
 
+exports.getAllIc = () => {
+  console.log('test getAllIc')
+
+  const client = new faunadb.Client({
+    secret: process.env.FAUNADB_SERVER_SECRET
+  })
+  return client.query(
+    q.Map(
+      q.Paginate(q.Documents(q.Collection('test_postulant'))),
+      q.Lambda(
+        'X',
+        {
+          id: q.Select(['ref', 'id'], q.Get(q.Var('X'))),
+          score: q.Select(['data', 'answer', 'score'], q.Get(q.Var('X'))),
+          correct: q.Select(['data', 'answer', 'correct'], q.Get(q.Var('X'))),
+          wrong: q.Select(['data', 'answer', 'wrong'], q.Get(q.Var('X'))),
+          omitted: q.Select(['data', 'answer', 'omitted'], q.Get(q.Var('X'))),
+          answerDate: q.Select(['data', 'updated_at'], q.Get(q.Var('X'))),
+          state: q.Select(['data', 'state', 'id'], q.Get(q.Var('X'))),
+        }
+      )
+    )
+  )
+  .then(response => response.data)
+  .catch((error) => {
+    console.error('test getAllIc error', error)
+    throw new Error(error)
+  })
+}
+
+exports.getIcById = (id) => {
+  console.log('test getIcById', id)
+  if (isNaN(id)) {
+    throw new Error('BAD_REQUEST')
+  }
+  const client = new faunadb.Client({
+    secret: process.env.FAUNADB_SERVER_SECRET
+  })
+  return client.query(
+    q.Get(
+      q.Ref(q.Collection('test_postulant'), id)
+    )
+  )
+  .then(async (response) => {
+    return response.data
+  }).catch((error) => {
+    console.error('test getIcById', error)
+    throw new Error(error)
+  })
+}
+
 
