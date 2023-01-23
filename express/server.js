@@ -9,6 +9,7 @@ const company = require('./company')
 const profile = require('./profile')
 const test = require('./test')
 const postulant = require('./postulant')
+const testPostulant = require('./test-postulant')
 
 const app = express();
 
@@ -140,7 +141,7 @@ router.post("/tests/:testId/postulants/:postulantId", async (req, res, next) => 
       createdById: body.createdById,
     }
 
-    const resp = await test.assign(assign)
+    const resp = await testPostulant.assign(assign)
     console.log('api test postulant assign response', resp)
     res.json(resp);
   } catch(err) {
@@ -168,12 +169,12 @@ router.post("/postulants", async (req, res, next) => {
   try {
     const body = req.body
     console.log('api postulant', body.email)
-    if (!body || !body.rut || !body.firstName || !body.lastName || !body.email) {
+    if (!body || !body.rut || !body.firstName || !body.lastName || !body.age || !body.sexo || !body.email) {
       throw new Error('BAD_REQUEST')
     }
 
     const { rut, firstName, lastName, email } = body;
-    const resp = await postulant.create({ rut, firstName, lastName, email })
+    const resp = await postulant.create({ rut, firstName, lastName, age, sexo, email })
     console.log('api postulant response')
     res.json(resp);
   } catch(err) {
@@ -189,7 +190,7 @@ router.get("/tests-postulants", async (req, res, next) => {
     const stateId = req.query.state
     console.log('api test postulant', postulantId, companyId, stateId)
     if (!isNaN(postulantId) && !isNaN(companyId) && !isNaN(stateId)) {
-      const resp = await test.findByPostulantAndCompanyAndState(postulantId, companyId, stateId)
+      const resp = await testPostulant.findByPostulantAndCompanyAndState(postulantId, companyId, stateId)
       console.log('api test postulant response', resp)
       res.json(resp)
       return
@@ -205,7 +206,7 @@ router.get("/tests/postulants/ic", async (req, res, next) => {
   try {
     console.log('api test postulant ic')
 
-    const resp = await test.getAllIc()
+    const resp = await testPostulant.getAllDone()
     console.log('api test postulant ic response', resp)
     res.json(resp)
   } catch(err) {
@@ -222,7 +223,7 @@ router.get("/tests/postulants/ic/:id", async (req, res, next) => {
     }
     console.log('api test postulant ic id', id)
 
-    const resp = await test.getIcById(id)
+    const resp = await testPostulant.getIcById(id)
     console.log('api test postulant ic id response', resp)
     res.json(resp)
   } catch(err) {
@@ -240,7 +241,7 @@ router.patch("/tests/postulants/ic/:id", async (req, res, next) => {
       throw new Error('BAD_REQUEST')
     }
 
-    const resp = await test.saveIC(id, body.checks)
+    const resp = await testPostulant.saveIC(id, body.checks)
     console.log('api test ic response', resp)
     res.json(resp);
   } catch(err) {

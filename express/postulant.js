@@ -29,7 +29,7 @@ exports.findByRut = rut => {
 exports.create = async postulant => {
   try {
     console.log('postulant create', postulant.email)
-    if (!postulant.rut || !postulant.firstName || !postulant.lastName || !postulant.email) {
+    if (!postulant.rut || !postulant.firstName || !postulant.lastName || !postulant.age || !postulant.sexo || !postulant.email) {
       throw new Error('BAD_REQUEST')
     }
     const client = new faunadb.Client({
@@ -44,6 +44,8 @@ exports.create = async postulant => {
               rut: postulant.rut,
               firstName: postulant.firstName,
               lastName: postulant.lastName,
+              age: postulant.age,
+              sexo: postulant.sexo,
               email: postulant.email
             },
           },
