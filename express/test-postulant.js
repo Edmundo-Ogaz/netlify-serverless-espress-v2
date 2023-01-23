@@ -72,19 +72,24 @@ exports.saveIC = async (id, checks) => {
     const omitted = 19 - correct
     const wrong = 56 - notSelected + omitted
 
-    let score = 0
-      if (wrong <= 1)
-          score = 6
-      else if (2 <= wrong <= 4)
-          score = 5
-      else if (5 <= wrong <= 7)
-          score = 4
-      else if (8 <= wrong <= 12)
-          score = 3
-      else if (13 <= wrong <= 17)
-          score = 2
-      else
-          score = 1
+    let score = 1
+    let level = "Nivel Bajo"
+    if (wrong <= 1) {
+      score = 6
+      level = "Nivel Muy Alto"
+    } else if (2 <= wrong <= 4) {
+      score = 5
+      level = "Nivel Alto"
+    } else if (5 <= wrong <= 7) {
+      score = 4
+      level = "Nivel Medio Alto"
+    } else if (8 <= wrong <= 12) {
+      score = 3
+      level = "Nivel Medio"
+    } else if (13 <= wrong <= 17) {
+      score = 2
+      level = "Nivel Medio Bajo"
+    }
 
     const client = new faunadb.Client({
       secret: process.env.FAUNADB_SERVER_SECRET
@@ -100,6 +105,7 @@ exports.saveIC = async (id, checks) => {
               answer:{
                 answer: binaryAnswer,
                 score,
+                level,
                 correct,
                 wrong,
                 omitted,
@@ -200,12 +206,20 @@ exports.getIcById = (id) => {
     secret: process.env.FAUNADB_SERVER_SECRET
   })
   return client.query(
-    q.Get(
-      q.Ref(q.Collection('test_postulant'), id)
+    q.Let({
+      data: q.Get(q.Ref(q.Collection("test_postulant"), id))
+    },
+    {
+     test: q.Select(['data'], q.Get(q.Select(['data', 'test'], q.Var('data')))),
+     postulant: q.Select(['data'], q.Get(q.Select(['data', 'postulant'], q.Var('data')))),
+     answer: q.Select(['data', 'answer'], q.Var('data')),
+     date: q.Select(['data', 'updated_at'], q.Var('data')),
+     state: q.Select(['data'], q.Get(q.Select(['data', 'state'], q.Var('data')))),
+    }
     )
   )
   .then(async (response) => {
-    return response.data
+    return response
   }).catch((error) => {
     console.error('test getIcById', error)
     throw new Error(error)
