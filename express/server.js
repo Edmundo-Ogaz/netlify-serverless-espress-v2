@@ -55,6 +55,25 @@ router.post("/users", async (req, res, next) => {
   }
 });
 
+router.get('/users/:id', async (req, res, next) => {
+  try {
+    console.log('api user id')
+    
+    const id = req.params.id;
+
+    if (isNaN(id)) {
+      throw new Error('BAB_REQUEST')
+    }
+
+    const resp = await user.findById(id)
+    console.log('api user response')
+    res.json(resp);
+  } catch(err) {
+    console.error(err)
+    next(err)
+  }
+});
+
 router.patch("/users/:id/password", async (req, res, next) => {
   try {
     const id = req.params.id
@@ -244,6 +263,20 @@ router.patch("/tests/postulants/ic/:id", async (req, res, next) => {
     const resp = await testPostulant.saveIC(id, body.checks)
     console.log('api test ic response', resp)
     res.json(resp);
+  } catch(err) {
+    console.error(err)
+    next(err)
+  }
+});
+
+router.get("/tests/postulants/search", async (req, res, next) => {
+  try {
+    const rut = req.query.rut
+    console.log('api test postulant search', rut)
+
+    const resp = await testPostulant.search(rut)
+    console.log('api test postulant search response', resp)
+    res.json(resp)
   } catch(err) {
     console.error(err)
     next(err)

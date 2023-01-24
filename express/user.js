@@ -2,6 +2,29 @@ const bcrypt = require('bcryptjs');
 const faunadb = require('faunadb')
 const q = faunadb.query
 
+exports.findById = (id) => {
+  console.log('user findById', id)
+  if (isNaN(id)) {
+    throw new Error('BAD_REQUEST')
+  }
+  const client = new faunadb.Client({
+    secret: process.env.FAUNADB_SERVER_SECRET
+  })
+  return client.query(
+    q.Get(
+      q.Ref(q.Collection('user'), id)
+    )
+  )
+  .then(async (response) => {
+    const id = response.ref.id
+    const { password, ...user } = response.data;
+    return {id, ...user}
+  }).catch((error) => {
+    console.error('user findById error', error)
+    throw new Error(error)
+  })
+}
+
 exports.login = (email, password) => {
   console.log('user login', email)
   if (!email || !password) {
