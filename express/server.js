@@ -10,6 +10,7 @@ const profile = require('./profile')
 const test = require('./test')
 const postulant = require('./postulant')
 const testPostulant = require('./test-postulant')
+const testPostulantController = require('./controllers/testPostulant')
 
 const app = express();
 
@@ -271,14 +272,12 @@ router.patch("/tests/postulants/ic/:id", async (req, res, next) => {
 
 router.get("/tests/postulants/search", async (req, res, next) => {
   try {
-    const rut = req.query.rut
-    console.log('api test postulant search', rut)
-
-    const resp = await testPostulant.search(rut)
+    console.log('api test postulant search')
+    let resp = await testPostulantController.search(req)
     console.log('api test postulant search response', resp)
     res.json(resp)
   } catch(err) {
-    console.error(err)
+    console.error('api test postulant search', err)
     next(err)
   }
 });

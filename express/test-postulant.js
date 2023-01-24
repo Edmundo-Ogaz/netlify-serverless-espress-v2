@@ -1,3 +1,4 @@
+const utils = require('./utils')
 const faunadb = require('faunadb')
 const q = faunadb.query
 
@@ -226,8 +227,46 @@ exports.getIcById = (id) => {
   })
 }
 
-exports.search = (rut) => {
-  console.log('test search', rut)
+exports.search = () => {
+  console.log('test search')
+  
+  const client = new faunadb.Client({
+    secret: process.env.FAUNADB_SERVER_SECRET
+  })
+  return client.query(
+    q.Map(
+      q.Paginate(q.Documents(q.Collection('test_postulant'))),
+      q.Lambda("X", {
+        id: q.Select(["ref", "id"], q.Get(q.Var("X"))),
+        test: q.Select( ["data"], q.Get(q.Select(["data", "test"], q.Get(q.Var("X")))) ),
+        postulant: q.Select( ["data"], q.Get(q.Select(["data", "postulant"], q.Get(q.Var("X")))) ),
+        company: q.Select( ["data"], q.Get(q.Select(["data", "company"], q.Get(q.Var("X")))) ),
+        analyst: q.Let({
+          data: q.Get(q.Select(["data", "analyst"], q.Get(q.Var("X")))) 
+          
+        }, 
+        {
+          firstName: q.Select(['data', 'firstName'], q.Var('data')),
+          lastName: q.Select(['data', 'lastName'], q.Var('data'))
+        }
+        ),
+        state: q.Select( ["data"], q.Get(q.Select(["data", "state"], q.Get(q.Var("X")))) ),
+        date: q.Select(["data", "createdAt"], q.Get(q.Var("X")))
+      })
+    )
+  )
+  .then(response => response.data)
+  .catch((error) => {
+    console.error('test search', error)
+    throw new Error(error)
+  })
+}
+
+exports.searchByRut = (rut) => {
+  console.log('test searchByRut', rut)
+
+  if (!rut || !utils.validateRut(rut))
+    throw new Error('BAD_REQUEST')
   
   const client = new faunadb.Client({
     secret: process.env.FAUNADB_SERVER_SECRET
@@ -263,7 +302,7 @@ exports.search = (rut) => {
   )
   .then(response => response.data)
   .catch((error) => {
-    console.error('test search', error)
+    console.error('test searchByRut', error)
     throw new Error(error)
   })
 }
