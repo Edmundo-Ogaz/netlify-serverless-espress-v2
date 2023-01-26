@@ -1,15 +1,17 @@
 const faunadb = require('faunadb')
 const q = faunadb.query
 
-exports.getAll = () => {
-  console.log('company getAll')
+const BASE_NAME = 'profile'
+
+function findAll() {
+  console.log(`${BASE_NAME} ${Object.values(this)[0].name}`)
 
   const client = new faunadb.Client({
     secret: process.env.FAUNADB_SERVER_SECRET
   })
   return client.query(
     q.Map(
-      q.Paginate(q.Documents(q.Collection('company'))),
+      q.Paginate(q.Documents(q.Collection('profile'))),
       q.Lambda(
         'X',
         {
@@ -19,9 +21,12 @@ exports.getAll = () => {
       )
     )
   )
-  .then(response => response.data)
-  .catch((error) => {
-    console.error('error', error)
+  .then(async (response) => {
+    return response.data
+  }).catch((error) => {
+    console.error(`${BASE_NAME} ${Object.values(this)[0].name} error`, error)
     throw new Error(error)
   })
 }
+
+module.exports = { findAll }

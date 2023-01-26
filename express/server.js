@@ -5,16 +5,19 @@ const bodyParser = require('body-parser');
 const cors = require('cors');
 
 const user = require('./user')
-const company = require('./company')
-const profile = require('./profile')
-const test = require('./test')
+const companyRepository = require('./repositories/companyRepository')
+const profileRepository = require('./repositories/profileProfiles')
+const testRepository = require('./repositories/testRepository')
 const postulant = require('./postulant')
 const testPostulant = require('./test-postulant')
-const testPostulantController = require('./controllers/testPostulant')
+const testPostulantController = require('./controllers/testPostulantController')
+const stateController = require('./controllers/stateController')
 
 const app = express();
 
 const router = express.Router();
+
+const BASE_NAME = 'server'
 
 router.get('/health', (req, res) => {
   res.json({message: "alive"});
@@ -22,18 +25,17 @@ router.get('/health', (req, res) => {
 
 router.get('/users', async (req, res, next) => {
   try {
-    console.log('api user')
-    
     const companyId = req.query.companyId;
     const profileId = req.query.profileId;
-
+    console.log(`${BASE_NAME} ${req.url}`)
     if (companyId && profileId) {
       const resp = await user.findByCompanyAndProfile(companyId, profileId)
-      console.log('api user response')
+      console.log(`${BASE_NAME} ${req.url} response`)
       res.json(resp);
     }
+    res.json(null);
   } catch(err) {
-    console.error(err)
+    console.error(`${BASE_NAME} ${req.url}`, err)
     next(err)
   }
 });
@@ -41,36 +43,34 @@ router.get('/users', async (req, res, next) => {
 router.post("/users", async (req, res, next) => {
   try {
     const body = req.body
-    console.log('api user', body.email)
+    console.log(`${BASE_NAME} ${req.url}`, body.email)
     if (!body || !body.rut || !body.firstName || !body.lastName || !body.email || !body.companyId || !body.profileId) {
       throw new Error('BAD_REQUEST')
     }
 
     const { rut, firstName, lastName, email, companyId, profileId } = body;
     const resp = await user.create({ rut, firstName, lastName, email, companyId, profileId })
-    console.log('api user response')
+    console.log(`${BASE_NAME} ${req.url} response`)
     res.json(resp);
   } catch(err) {
-    console.error(err)
+    console.error(`${BASE_NAME} ${req.url}`, err)
     next(err)
   }
 });
 
 router.get('/users/:id', async (req, res, next) => {
   try {
-    console.log('api user id')
-    
     const id = req.params.id;
-
+    console.log(`${BASE_NAME} ${req.url}`, id)
     if (isNaN(id)) {
       throw new Error('BAB_REQUEST')
     }
 
     const resp = await user.findById(id)
-    console.log('api user response')
+    console.log(`${BASE_NAME} ${req.url} response`, user)
     res.json(resp);
   } catch(err) {
-    console.error(err)
+    console.error(`${BASE_NAME} ${req.url} error`, err)
     next(err)
   }
 });
@@ -79,16 +79,16 @@ router.patch("/users/:id/password", async (req, res, next) => {
   try {
     const id = req.params.id
     const body = req.body
-    console.log('api user register password', id)
+    console.log(`${BASE_NAME} ${req.url}`, id)
     if (!id || !body || !body.password) {
       throw new Error('BAD_REQUEST')
     }
 
     const resp = await user.registerPassword({ id, password: body.password })
-    console.log('api user register password response')
+    console.log(`${BASE_NAME} ${req.url} response`)
     res.json(resp);
   } catch(err) {
-    console.error('api user register password', err)
+    console.error(`${BASE_NAME} ${req.url} error`, err)
     next(err)
   }
 });
@@ -96,49 +96,52 @@ router.patch("/users/:id/password", async (req, res, next) => {
 router.post("/users/login", async (req, res, next) => {
   try {
     const body = req.body
-    console.log('api user/login', body.email)
+    console.log(`${BASE_NAME} ${req.url}`, body.email)
     if (!body || !body.email || !body.password) {
       throw new Error('BAD_REQUEST')
     }
 
     const resp = await user.login(body.email, body.password)
-    console.log('api user/login response', resp)
+    console.log(`${BASE_NAME} ${req.url} response`, resp)
     res.json(resp);
   } catch(err) {
-    console.error(err)
+    console.error(`${BASE_NAME} ${req.url}`, err)
     next(err)
   }
 });
 
 router.get('/companies', async (req, res, next) => {
   try {
-    const resp = await company.getAll()
-    console.log('api company response')
+    console.log(`${BASE_NAME} ${req.url}`)
+    const resp = await companyRepository.findAll()
+    console.log(`${BASE_NAME} ${req.url} response`)
     res.json(resp);
   } catch(err) {
-    console.error(err)
+    console.error(`${BASE_NAME} ${req.url}`, err)
     next(err)
   }
 });
 
 router.get('/profiles', async (req, res, next) => {
   try {
-    const resp = await profile.getAll()
-    console.log('api profiles response')
+    console.log(`${BASE_NAME} ${req.url}`)
+    const resp = await profileRepository.findAll()
+    console.log(`${BASE_NAME} ${req.url} response`)
     res.json(resp);
   } catch(err) {
-    console.error(err)
+    console.error(`${BASE_NAME} ${req.url}`, err)
     next(err)
   }
 });
 
 router.get('/tests', async (req, res, next) => {
   try {
-    const resp = await test.getAll()
-    console.log('api tests response')
+    console.log(`${BASE_NAME} ${req.url}`)
+    const resp = await testRepository.findAll()
+    console.log(`${BASE_NAME} ${req.url} response`)
     res.json(resp);
   } catch(err) {
-    console.error(err)
+    console.error(`${BASE_NAME} ${req.url}`, err)
     next(err)
   }
 });
@@ -148,7 +151,7 @@ router.post("/tests/:testId/postulants/:postulantId", async (req, res, next) => 
     const testId = req.params.testId
     const postulantId = req.params.postulantId
     const body = req.body
-    console.log('api test postulant assign', body.companyId)
+    console.log(`${BASE_NAME} ${req.url}`, body.companyId)
     if (!testId || !postulantId || !body || !body.companyId || !body.analystId || !body.createdById) {
       throw new Error('BAD_REQUEST')
     }
@@ -162,10 +165,10 @@ router.post("/tests/:testId/postulants/:postulantId", async (req, res, next) => 
     }
 
     const resp = await testPostulant.assign(assign)
-    console.log('api test postulant assign response', resp)
+    console.log(`${BASE_NAME} ${req.url} response`, resp)
     res.json(resp);
   } catch(err) {
-    console.error(err)
+    console.error(`${BASE_NAME} ${req.url}`, err)
     next(err)
   }
 });
@@ -173,14 +176,14 @@ router.post("/tests/:testId/postulants/:postulantId", async (req, res, next) => 
 router.get("/postulants", async (req, res, next) => {
   try {
     const rut = req.query.rut
-    console.log('api postulant', rut)
+    console.log(`${BASE_NAME} ${req.url}`, rut)
     if (rut) {
       const resp = await postulant.findByRut(rut)
-      console.log('api postulant response', resp)
+      console.log(`${BASE_NAME} ${req.url} response`, resp)
       res.json(resp);
     }
   } catch(err) {
-    console.error(err)
+    console.error(`${BASE_NAME} ${req.url}`, err)
     next(err)
   }
 });
@@ -188,17 +191,17 @@ router.get("/postulants", async (req, res, next) => {
 router.post("/postulants", async (req, res, next) => {
   try {
     const body = req.body
-    console.log('api postulant', body.email)
+    console.log(`${BASE_NAME} ${req.url}`, body.email)
     if (!body || !body.rut || !body.firstName || !body.lastName || !body.age || !body.sexo || !body.email) {
       throw new Error('BAD_REQUEST')
     }
 
     const { rut, firstName, lastName, email } = body;
     const resp = await postulant.create({ rut, firstName, lastName, age, sexo, email })
-    console.log('api postulant response')
+    console.log(`${BASE_NAME} ${req.url} response`)
     res.json(resp);
   } catch(err) {
-    console.error(err)
+    console.error(`${BASE_NAME} ${req.url}`, err)
     next(err)
   }
 });
@@ -208,29 +211,29 @@ router.get("/tests-postulants", async (req, res, next) => {
     const postulantId = req.query.postulant
     const companyId = req.query.company
     const stateId = req.query.state
-    console.log('api test postulant', postulantId, companyId, stateId)
+    console.log(`${BASE_NAME} ${req.url}`, postulantId, companyId, stateId)
     if (!isNaN(postulantId) && !isNaN(companyId) && !isNaN(stateId)) {
       const resp = await testPostulant.findByPostulantAndCompanyAndState(postulantId, companyId, stateId)
-      console.log('api test postulant response', resp)
+      console.log(`${BASE_NAME} ${req.url} response`, resp)
       res.json(resp)
       return
     }
     res.json(null);
   } catch(err) {
-    console.error(err)
+    console.error(`${BASE_NAME} ${req.url}`, err)
     next(err)
   }
 });
 
 router.get("/tests/postulants/ic", async (req, res, next) => {
   try {
-    console.log('api test postulant ic')
+    console.log(`${BASE_NAME} ${req.url}`)
 
-    const resp = await testPostulant.getAllDone()
-    console.log('api test postulant ic response', resp)
+    const resp = await testPostulant.findAllDone()
+    console.log(`${BASE_NAME} ${req.url} response`, resp)
     res.json(resp)
   } catch(err) {
-    console.error(err)
+    console.error(`${BASE_NAME} ${req.url} error`, err)
     next(err)
   }
 });
@@ -238,16 +241,16 @@ router.get("/tests/postulants/ic", async (req, res, next) => {
 router.get("/tests/postulants/ic/:id", async (req, res, next) => {
   try {
     const id = req.params.id
+    console.log(`${BASE_NAME} ${req.url}`,  id)
     if (isNaN(id)) {
       throw new Error('BAD_REQUEST')
     }
-    console.log('api test postulant ic id', id)
 
     const resp = await testPostulant.getIcById(id)
-    console.log('api test postulant ic id response', resp)
+    console.log(`${BASE_NAME} ${req.url} response`, resp)
     res.json(resp)
   } catch(err) {
-    console.error(err)
+    console.error(`${BASE_NAME} ${req.url}`, err)
     next(err)
   }
 });
@@ -256,28 +259,40 @@ router.patch("/tests/postulants/ic/:id", async (req, res, next) => {
   try {
     const id = req.params.id
     const body = req.body
-    console.log('api test ic', id, body, body.checks)
+    console.log(`${BASE_NAME} ${req.url}`,  id, body)
     if (!id || !body || !Array.isArray(body.checks)) {
       throw new Error('BAD_REQUEST')
     }
 
     const resp = await testPostulant.saveIC(id, body.checks)
-    console.log('api test ic response', resp)
+    console.log(`${BASE_NAME} ${req.url} response`, resp)
     res.json(resp);
   } catch(err) {
-    console.error(err)
+    console.error(`${BASE_NAME} ${req.url}`, err)
     next(err)
   }
 });
 
 router.get("/tests/postulants/search", async (req, res, next) => {
   try {
-    console.log('api test postulant search')
+    console.log(`${BASE_NAME} ${req.url}`)
     let resp = await testPostulantController.search(req)
-    console.log('api test postulant search response', resp)
+    console.log(`${BASE_NAME} ${req.url} response`, resp)
     res.json(resp)
   } catch(err) {
-    console.error('api test postulant search', err)
+    console.error(`${BASE_NAME} ${req.url} error`, err)
+    next(err)
+  }
+});
+
+router.get("/states", async (req, res, next) => {
+  try {
+    console.log(`${BASE_NAME} ${req.url}`)
+    let resp = await stateController.findAll()
+    console.log(`${BASE_NAME} ${req.url} response`, resp)
+    res.json(resp)
+  } catch(err) {
+    console.error(`${BASE_NAME} ${req.url} error`, err)
     next(err)
   }
 });

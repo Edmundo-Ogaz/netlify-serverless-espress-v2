@@ -2,6 +2,8 @@ const utils = require('./utils')
 const faunadb = require('faunadb')
 const q = faunadb.query
 
+const BASE_NAME = 'test-postulant'
+
 exports.assign = async assign => {
   try {
     console.log('test assign assign', assign.companyId)
@@ -161,8 +163,8 @@ exports.findByPostulantAndCompanyAndState = (postulantId, companyId, stateId) =>
   })
 }
 
-exports.getAllDone = () => {
-  console.log('test getAllDone')
+exports.findAllDone = function findAllDone() {
+  console.log(`${BASE_NAME} ${Object.values(this)[0].name}`)
 
   const client = new faunadb.Client({
     secret: process.env.FAUNADB_SERVER_SECRET
@@ -193,7 +195,7 @@ exports.getAllDone = () => {
   )
   .then(response => response.data)
   .catch((error) => {
-    console.error('test getAllDone error', error)
+    console.error(`${BASE_NAME} ${Object.values(this)[0].name} error`, error)
     throw new Error(error)
   })
 }
