@@ -4,7 +4,8 @@ const serverless = require('serverless-http');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 
-const user = require('./user')
+const userRepository = require('./repositories/userRepository')
+const userController = require('./controllers/userController')
 const companyRepository = require('./repositories/companyRepository')
 const profileRepository = require('./repositories/profileProfiles')
 const testRepository = require('./repositories/testRepository')
@@ -19,23 +20,24 @@ const router = express.Router();
 
 const BASE_NAME = 'server'
 
+const Console = {
+  debug: (message, params, req) => console.log(`${BASE_NAME} ${req.method} ${req.url} ${message}`, ...params),
+  error: (message, params, req) => console.error(`${BASE_NAME} ${req.method} ${req.url} ${message}`, ...params),
+}
+
 router.get('/health', (req, res) => {
+  Console.debug('', [], req)
   res.json({message: "alive"});
 });
 
 router.get('/users', async (req, res, next) => {
   try {
-    const companyId = req.query.companyId;
-    const profileId = req.query.profileId;
-    console.log(`${BASE_NAME} ${req.url}`)
-    if (companyId && profileId) {
-      const resp = await user.findByCompanyAndProfile(companyId, profileId)
-      console.log(`${BASE_NAME} ${req.url} response`)
+      Console.debug('', [], req)
+      const resp = await userController.search(req)
+      Console.debug(`response`, [], req)
       res.json(resp);
-    }
-    res.json(null);
   } catch(err) {
-    console.error(`${BASE_NAME} ${req.url}`, err)
+    Console.error(``, [err], req)
     next(err)
   }
 });
@@ -43,13 +45,14 @@ router.get('/users', async (req, res, next) => {
 router.post("/users", async (req, res, next) => {
   try {
     const body = req.body
-    console.log(`${BASE_NAME} ${req.url}`, body.email)
+    Console.debug('', [body.email], req)
+    console.log(`${BASE_NAME} ${req.method} ${req.url}`, body.email)
     if (!body || !body.rut || !body.firstName || !body.lastName || !body.email || !body.companyId || !body.profileId) {
       throw new Error('BAD_REQUEST')
     }
 
     const { rut, firstName, lastName, email, companyId, profileId } = body;
-    const resp = await user.create({ rut, firstName, lastName, email, companyId, profileId })
+    const resp = await userRepository.create({ rut, firstName, lastName, email, companyId, profileId })
     console.log(`${BASE_NAME} ${req.url} response`)
     res.json(resp);
   } catch(err) {
@@ -60,17 +63,24 @@ router.post("/users", async (req, res, next) => {
 
 router.get('/users/:id', async (req, res, next) => {
   try {
-    const id = req.params.id;
-    console.log(`${BASE_NAME} ${req.url}`, id)
-    if (isNaN(id)) {
-      throw new Error('BAB_REQUEST')
-    }
-
-    const resp = await user.findById(id)
-    console.log(`${BASE_NAME} ${req.url} response`, user)
+    Console.debug.call(this, ``, [], req)
+    const resp = await userController.findById(req)
+    Console.debug.call(this, `response`, [resp], req)
     res.json(resp);
   } catch(err) {
-    console.error(`${BASE_NAME} ${req.url} error`, err)
+    Console.error.call(this, `error`, [err], req)
+    next(err)
+  }
+});
+
+router.patch("/users/:id", async (req, res, next) => {
+  try {
+    Console.debug.call(this, ``, [], req)
+    const resp = await userController.edit(req)
+    Console.debug.call(this, `response`, [], req)
+    res.json(resp);
+  } catch(err) {
+    Console.error.call(this, `error`, [err], req)
     next(err)
   }
 });
@@ -84,7 +94,7 @@ router.patch("/users/:id/password", async (req, res, next) => {
       throw new Error('BAD_REQUEST')
     }
 
-    const resp = await user.registerPassword({ id, password: body.password })
+    const resp = await userRepository.registerPassword({ id, password: body.password })
     console.log(`${BASE_NAME} ${req.url} response`)
     res.json(resp);
   } catch(err) {
@@ -101,7 +111,7 @@ router.post("/users/login", async (req, res, next) => {
       throw new Error('BAD_REQUEST')
     }
 
-    const resp = await user.login(body.email, body.password)
+    const resp = await userRepository.login(body.email, body.password)
     console.log(`${BASE_NAME} ${req.url} response`, resp)
     res.json(resp);
   } catch(err) {
