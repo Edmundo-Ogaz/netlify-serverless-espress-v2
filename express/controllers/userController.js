@@ -25,6 +25,32 @@ async function findById(req) {
   }
 }
 
+async function create(req) {
+  try {
+    const body = req.body
+    Console.debug.call(this, 'save', [body])
+    if (!body || !body.rut || !body.firstName || !body.lastName || !body.email || !body.company || !body.profile || !body.createdBy) {
+      throw new Error('BAD_REQUEST')
+    }
+    const isExistRut =  await userRepository.findByRut(body.rut)
+    if (isExistRut) {
+      throw new Error('USER_EXIST')
+    }
+    const isExistEmail =  await userRepository.findByEmail(body.email)
+    if (isExistEmail) {
+      throw new Error('USER_EXIST')
+    }
+
+    const { rut, firstName, lastName, email, company: companyId, profile: profileId, createdBy: createdById} = body;
+    const resp = await userRepository.create({ rut, firstName, lastName, email, companyId, profileId, createdById })
+    Console.debug.call(this, `response`, [resp])
+    return resp
+  } catch(e) {
+    Console.error.call(this, `error`, [e])
+    throw e
+  }
+}
+
 async function edit(req) {
   try {
     const id = req.params.id
@@ -75,4 +101,4 @@ async function search(req) {
   }
 }
 
-module.exports = { findById, edit, search };
+module.exports = { findById, create, edit, search };

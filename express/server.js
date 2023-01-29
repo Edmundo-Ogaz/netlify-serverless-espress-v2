@@ -44,19 +44,12 @@ router.get('/users', async (req, res, next) => {
 
 router.post("/users", async (req, res, next) => {
   try {
-    const body = req.body
-    Console.debug('', [body.email], req)
-    console.log(`${BASE_NAME} ${req.method} ${req.url}`, body.email)
-    if (!body || !body.rut || !body.firstName || !body.lastName || !body.email || !body.companyId || !body.profileId) {
-      throw new Error('BAD_REQUEST')
-    }
-
-    const { rut, firstName, lastName, email, companyId, profileId } = body;
-    const resp = await userRepository.create({ rut, firstName, lastName, email, companyId, profileId })
-    console.log(`${BASE_NAME} ${req.url} response`)
+    Console.debug('', [req.body], req)
+    const resp = await userController.create(req)
+    Console.debug.call(this, `response`, [], req)
     res.json(resp);
   } catch(err) {
-    console.error(`${BASE_NAME} ${req.url}`, err)
+    Console.error.call(this, `error`, [err], req)
     next(err)
   }
 });

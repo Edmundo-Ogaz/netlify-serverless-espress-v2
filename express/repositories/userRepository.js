@@ -6,8 +6,8 @@ const q = faunadb.query
 const BASE_NAME = 'userRepository'
 
 const Console = {
-  debug: function(message, params) {console.log(`${BASE_NAME} ${Object.values(this)[0].name} ${message}`, ...params)},
-  error: function(message, params) {console.error(`${BASE_NAME} ${Object.values(this)[0].name} ${message}`, ...params)},
+  debug: function(message, params) {console.log(`${BASE_NAME} ${message}`, ...params)},
+  error: function(message, params) {console.error(`${BASE_NAME} ${message}`, ...params)},
 }
 
 async function findById(id) {
@@ -23,13 +23,74 @@ async function findById(id) {
       object: q.Get(
         q.Ref(q.Collection('user'), id)
       )
-    }, getModel(q.Var('object'))
+    }, 
+      getModel(q.Var('object'))
     )
   )
   .then(response => response)
   .catch((error) => {
     Console.error.call(this, 'findById error', [error])
     throw new Error(error)
+  })
+}
+
+async function findByRut(rut) {
+  Console.debug.call(this, 'findByRut', [rut])
+  if (!rut) {
+    throw new Error('BAD_REQUEST')
+  }
+  const client = new faunadb.Client({
+    secret: process.env.FAUNADB_SERVER_SECRET
+  })
+  return client.query(
+    q.Let({
+      object: q.Get(
+        q.Match(
+          q.Ref('indexes/user_by_rut'),
+          rut
+        )
+      )
+    }, 
+      getModel(q.Var('object'))
+    )
+  )
+  .then((response) => {
+    Console.debug.call(this, 'findByRut response', [response])
+    return response
+  })
+  .catch((error) => {
+    console.error('user login error', error)
+    return null
+  })
+}
+
+async function findByEmail(email) {
+  Console.debug.call(this, 'findByEmail', [email])
+  if (!email) {
+    throw new Error('BAD_REQUEST')
+  }
+  const client = new faunadb.Client({
+    secret: process.env.FAUNADB_SERVER_SECRET
+  })
+  return client.query(
+    q.Let({
+      object: q.Get(
+        q.Match(
+          q.Ref('indexes/user_by_email'),
+          email
+        )
+      )
+    }, 
+      getModel(q.Var('object'))
+    )
+  )
+  .then((response) => {
+    Console.debug.call(this, 'findByEmail response', [response])
+    return response
+  })
+  .catch((e) => {
+    Console.error.call(this, 'findByEmail error', [e])
+    return null
   })
 }
 
@@ -68,7 +129,7 @@ async function login(email, password) {
 async function create(user) {
   try {
     console.log('user create', user.email)
-    if (!user.rut || !user.firstName || !user.lastName || !user.email || !user.companyId || !user.profileId || !user.createdBy) {
+    if (!user.rut || !user.firstName || !user.lastName || !user.email || !user.companyId || !user.profileId || !user.createdById) {
       throw new Error('BAD_REQUEST')
     }
     const client = new faunadb.Client({
@@ -77,6 +138,7 @@ async function create(user) {
   
     const companyRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('company'), user.companyId))))
     const profileRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('profile'), user.profileId))))
+    const createdByRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('user'), user.createdById))))
   
     const response = await client.query(
       q.Create(
@@ -89,7 +151,7 @@ async function create(user) {
               email: user.email,
               company: companyRef,
               profile: profileRef,
-              createdBy: user.createdBy,
+              createdBy: createdByRef,
               createdAt: q.Now()
             },
           },
@@ -263,4 +325,4 @@ function getModel(object) {
   }
 }
 
-module.exports = { findById, login, create, edit, registerPassword, search }
+module.exports = { findById, findByRut, findByEmail, login, create, edit, registerPassword, search }
