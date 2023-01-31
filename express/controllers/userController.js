@@ -73,25 +73,26 @@ async function edit(req) {
 
 async function search(req) {
   try {
-    const {rut, email, company, profile} = {...req.query}
-    Console.debug.call(this, 'search', [rut, email, company, profile])
+    const {rut, name, email, company, profile} = {...req.query}
+    Console.debug.call(this, 'search', [rut, name, email, company, profile])
 
     if (rut && !utils.validateRut(rut)) {
+      throw new Error('BAD_REQUEST')
+    }
+    if (name && typeof name !== 'string') {
       throw new Error('BAD_REQUEST')
     }
     if (email && typeof email !== 'string') {
       throw new Error('BAD_REQUEST')
     }
-
     if (company && isNaN(company)) {
       throw new Error('BAD_REQUEST')
     }
-
     if (profile && isNaN(profile)) {
       throw new Error('BAD_REQUEST')
     }
 
-    let resp = await userRepository.search({rut, email, companyId: company, profileId: profile})
+    let resp = await userRepository.search({rut, name, email, companyId: company, profileId: profile})
 
     Console.debug.call(this, `response`, [resp])
     return resp

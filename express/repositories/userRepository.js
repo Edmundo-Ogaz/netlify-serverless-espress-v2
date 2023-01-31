@@ -238,12 +238,18 @@ async function registerPassword(user) {
   }
 }
 
-async function search({rut, email, companyId, profileId}) {
-  Console.debug.call(this, `search`, [rut, email, companyId, profileId])
+async function search({rut, name, email, companyId, profileId}) {
+  Console.debug.call(this, `search`, [rut, name, email, companyId, profileId])
 
   let insertion = [q.Match(q.Index("users"))]
   if (rut && utils.validateRut(rut)) {
     insertion.push(q.Match(q.Index("user_by_rut"), rut))
+  }
+
+  let filters = []
+  if (name && typeof name == 'string') {
+    filters.push(q.ContainsStr(q.Select(["firstName"], q.Var("result")), name))
+    filters.push(q.ContainsStr(q.Select(["lastName"], q.Var("result")), name))
   }
 
   if (email && typeof email == 'string') {
@@ -277,13 +283,20 @@ async function search({rut, email, companyId, profileId}) {
     secret: process.env.FAUNADB_SERVER_SECRET
   })
   return client.query(
-    q.Map(
-      q.Paginate(
-        q.Intersection(...insertion)
+    q.Filter(
+      q.Map(
+        q.Paginate(
+          q.Intersection(...insertion)
+        ),
+        q.Lambda(
+          'object',
+          getModel(q.Get(q.Var('object')))
+        )
       ),
       q.Lambda(
-        'object',
-        getModel(q.Get(q.Var('object')))
+        "result",
+        q.And(filters.length > 0 ? q.Or(...filters) : true
+        )
       )
     )
   )

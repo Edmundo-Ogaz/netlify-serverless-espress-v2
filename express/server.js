@@ -303,6 +303,10 @@ router.get("/states", async (req, res, next) => {
 app.use(cors({origin: '*'}));
 app.use(bodyParser.json());
 app.use('/.netlify/functions/server', router);  // path must route to lambda
+app.use((err, req, res, next) => {
+  console.error(err.message)
+  res.status(500).send({ error: err.message });
+})
 
 module.exports = app;
 module.exports.handler = serverless(app);
