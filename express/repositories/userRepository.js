@@ -95,7 +95,7 @@ async function findByEmail(email) {
 }
 
 async function login(email, password) {
-  console.log('user login', email)
+  Console.debug.call(this, 'login', [email])
   if (!email || !password) {
     throw new Error('BAD_REQUEST')
   }
@@ -111,6 +111,10 @@ async function login(email, password) {
     )
   )
   .then(async (response) => {
+    Console.debug.call(this, 'login response', [response])
+    if (!response.data || !response.data.password) {
+      throw new Error('USER_NOT_ALLOWED')
+    }
     let result = null
     if (response && response.data
       && (await bcrypt.compare(password, response.data.password))
@@ -121,7 +125,7 @@ async function login(email, password) {
     }
     return result
   }).catch((error) => {
-    console.error('user login error', error)
+    Console.error.call(this, 'login error', [error])
     throw new Error(error)
   })
 }

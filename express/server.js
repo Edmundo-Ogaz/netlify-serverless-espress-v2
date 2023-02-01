@@ -6,6 +6,7 @@ const cors = require('cors');
 
 const userRepository = require('./repositories/userRepository')
 const userController = require('./controllers/userController')
+const postulantController = require('./controllers/postulantController')
 const companyRepository = require('./repositories/companyRepository')
 const profileRepository = require('./repositories/profileProfiles')
 const testRepository = require('./repositories/testRepository')
@@ -178,33 +179,48 @@ router.post("/tests/:testId/postulants/:postulantId", async (req, res, next) => 
 
 router.get("/postulants", async (req, res, next) => {
   try {
-    const rut = req.query.rut
-    console.log(`${BASE_NAME} ${req.url}`, rut)
-    if (rut) {
-      const resp = await postulant.findByRut(rut)
-      console.log(`${BASE_NAME} ${req.url} response`, resp)
-      res.json(resp);
-    }
+    Console.debug('', [], req)
+    const resp = await postulantController.search(req)
+    Console.debug('response', [resp], req)
+    res.json(resp);
   } catch(err) {
-    console.error(`${BASE_NAME} ${req.url}`, err)
+    Console.error(`error`, [err], req)
     next(err)
   }
 });
 
 router.post("/postulants", async (req, res, next) => {
   try {
-    const body = req.body
-    console.log(`${BASE_NAME} ${req.url}`, body.email)
-    if (!body || !body.rut || !body.firstName || !body.lastName || !body.age || !body.sexo || !body.email) {
-      throw new Error('BAD_REQUEST')
-    }
-
-    const { rut, firstName, lastName, email } = body;
-    const resp = await postulant.create({ rut, firstName, lastName, age, sexo, email })
-    console.log(`${BASE_NAME} ${req.url} response`)
+    Console.debug('', [], req)
+    const resp = await postulantController.create(req)
+    Console.debug(' response', [resp], req)
     res.json(resp);
   } catch(err) {
-    console.error(`${BASE_NAME} ${req.url}`, err)
+    Console.error(`error`, [err], req)
+    next(err)
+  }
+});
+
+router.get("/postulants/:id", async (req, res, next) => {
+  try {
+    Console.debug('', [], req)
+    const resp = await postulantController.findById(req)
+    Console.debug('response', [resp], req)
+    res.json(resp);
+  } catch(err) {
+    Console.error(`error`, [err], req)
+    next(err)
+  }
+});
+
+router.patch("/postulants/:id", async (req, res, next) => {
+  try {
+    Console.debug.call(this, ``, [], req)
+    const resp = await postulantController.edit(req)
+    Console.debug.call(this, `response`, [], req)
+    res.json(resp);
+  } catch(err) {
+    Console.error.call(this, `error`, [err], req)
     next(err)
   }
 });
