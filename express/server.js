@@ -15,6 +15,8 @@ const testPostulant = require('./test-postulant')
 const testPostulantController = require('./controllers/testPostulantController')
 const stateController = require('./controllers/stateController')
 
+const testPostulantRouter = require('./routers/testPostulantRouter')
+
 const app = express();
 
 const router = express.Router();
@@ -292,17 +294,7 @@ router.patch("/tests/postulants/ic/:id", async (req, res, next) => {
   }
 });
 
-router.get("/tests/postulants/search", async (req, res, next) => {
-  try {
-    console.log(`${BASE_NAME} ${req.url}`)
-    let resp = await testPostulantController.search(req)
-    console.log(`${BASE_NAME} ${req.url} response`, resp)
-    res.json(resp)
-  } catch(err) {
-    console.error(`${BASE_NAME} ${req.url} error`, err)
-    next(err)
-  }
-});
+router.get("/tests/postulants/search", testPostulantController.search)
 
 router.get("/states", async (req, res, next) => {
   try {

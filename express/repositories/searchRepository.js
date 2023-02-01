@@ -4,66 +4,77 @@ const q = faunadb.query
 
 const BASE_NAME = 'searchRepository'
 
-exports.search = ({rut, email, companyId, analystId, testId, stateId}) => {
-  console.log(`${BASE_NAME} ${Object.values(this)[0].name}`, rut, email, stateId)
+const Console = {
+  debug: function(message, params) {console.log(`${BASE_NAME} ${message}`, ...params)},
+  error: function(message, params) {console.error(`${BASE_NAME} ${message}`, ...params)},
+}
+
+exports.search = (testPostulant) => {
+  Console.debug(`search`, [testPostulant])
 
   let insertion = [q.Match(q.Index("tests_postulants"))]
-  if (rut && utils.validateRut(rut)) {
+  if (testPostulant.rut && utils.validateRut(testPostulant.rut)) {
     insertion.push(q.Match(
       q.Index("tests_postulants_by_postulant"),
       q.Select(
         ["ref"],
-        q.Get(q.Match(q.Index("postulant_by_rut"), rut))
+        q.Get(q.Match(q.Index("postulant_by_rut"), testPostulant.rut))
       )
     ))
   }
 
-  if (email && typeof email == 'string') {
+  let filters = []
+  if (testPostulant.name && typeof testPostulant.name == 'string') {
+    filters.push(q.ContainsStr(q.Select(["postulant", "firstName"], q.Var("result")), testPostulant.name))
+    filters.push(q.ContainsStr(q.Select(["postulant", "lastName"], q.Var("result")), testPostulant.name))
+  }
+
+  if (testPostulant.email && typeof testPostulant.email == 'string') {
     insertion.push(q.Match(
       q.Index("tests_postulants_by_postulant"),
       q.Select(
         ["ref"],
-        q.Get(q.Match(q.Index("postulant_by_email"), email))
+        q.Get(q.Match(q.Index("postulant_by_email"), testPostulant.email))
       )
     ))
   }
 
-  if (companyId && !isNaN(companyId)) {
+  if (testPostulant.companyId && !isNaN(testPostulant.companyId)) {
     insertion.push(q.Match(
       q.Index("tests_postulants_by_company"),
       q.Select(
         ["ref"],
-        q.Get(q.Ref(q.Collection("company"), companyId))
+        q.Get(q.Ref(q.Collection("company"), testPostulant.companyId))
       )
     ))
   }
 
-  if (analystId && !isNaN(analystId)) {
+  if (testPostulant.analystId && !isNaN(testPostulant.analystId)) {
     insertion.push(q.Match(
       q.Index("tests_postulants_by_analyst"),
       q.Select(
         ["ref"],
-        q.Get(q.Ref(q.Collection("user"), analystId))
+        q.Get(q.Ref(q.Collection("user"), testPostulant.analystId))
       )
     ))
   }
   
-  if (testId && !isNaN(testId)) {
+  if (testPostulant.testId && !isNaN(testPostulant.testId)) {
     insertion.push(q.Match(
       q.Index("tests_postulants_by_test"),
       q.Select(
         ["ref"],
-        q.Get(q.Ref(q.Collection("test"), testId))
+        q.Get(q.Ref(q.Collection("test"), testPostulant.testId))
       )
     ))
   }
 
-  if (stateId && !isNaN(stateId)) {
+  if (testPostulant.stateId && !isNaN(testPostulant.stateId)) {
     insertion.push(q.Match(
       q.Index("tests_postulants_by_state"),
       q.Select(
         ["ref"],
-        q.Get(q.Ref(q.Collection("test_state"), stateId))
+        q.Get(q.Ref(q.Collection("test_state"), testPostulant.stateId))
       )
     ))
   }
@@ -74,27 +85,21 @@ exports.search = ({rut, email, companyId, analystId, testId, stateId}) => {
     secret: process.env.FAUNADB_SERVER_SECRET
   })
   return client.query(
-    q.Map(
-      q.Paginate(
-        q.Intersection(...insertion)
-      ),
-      q.Lambda("X", {
-        id: q.Select(["ref", "id"], q.Get(q.Var("X"))),
-        test: q.Select( ["data"], q.Get(q.Select(["data", "test"], q.Get(q.Var("X")))) ),
-        postulant: q.Select( ["data"], q.Get(q.Select(["data", "postulant"], q.Get(q.Var("X")))) ),
-        company: q.Select( ["data"], q.Get(q.Select(["data", "company"], q.Get(q.Var("X")))) ),
-        analyst: q.Let({
-          data: q.Get(q.Select(["data", "analyst"], q.Get(q.Var("X")))) 
-          
-        }, 
-        {
-          firstName: q.Select(['data', 'firstName'], q.Var('data')),
-          lastName: q.Select(['data', 'lastName'], q.Var('data'))
-        }
+    q.Filter(
+      q.Map(
+        q.Paginate(
+          q.Intersection(...insertion)
         ),
-        state: q.Select( ["data"], q.Get(q.Select(["data", "state"], q.Get(q.Var("X")))) ),
-        date: q.Select(["data", "createdAt"], q.Get(q.Var("X")))
-      })
+        q.Lambda(
+          'object',
+          getModel(q.Get(q.Var('object')))
+        )
+      ),
+      q.Lambda(
+        "result",
+        q.And(filters.length > 0 ? q.Or(...filters) : true
+        )
+      )
     )
   )
   .then(response => response.data)
@@ -102,6 +107,31 @@ exports.search = ({rut, email, companyId, analystId, testId, stateId}) => {
     console.error(`${BASE_NAME} ${Object.values(this)[0].name} error`, error)
     throw new Error(error)
   })
+}
+
+function getModel(object) {
+  return {
+    id: q.Select(["ref", "id"], object),
+    test: q.Select( ["data"], q.Get(q.Select(["data", "test"], object)) ),
+    postulant: 
+    {
+      id: q.Select(['ref', 'id'], q.Get(q.Select(['data', 'postulant'], object))),
+      firstName: q.Select(['data', 'firstName'], q.Get(q.Select(['data', 'postulant'], object))),
+      lastName: q.Select(['data', 'lastName'], q.Get(q.Select(['data', 'postulant'], object)))
+    },
+    company: q.Select( ["data"], q.Get(q.Select(["data", "company"], object)) ),
+    analyst: q.Let({
+      data: q.Get(q.Select(["data", "analyst"], object)) 
+      
+    }, 
+    {
+      firstName: q.Select(['data', 'firstName'], q.Var('data')),
+      lastName: q.Select(['data', 'lastName'], q.Var('data'))
+    }
+    ),
+    state: q.Select( ["data"], q.Get(q.Select(["data", "state"], object)) ),
+    date: q.Select(["data", "createdAt"], object)
+  }
 }
 
 

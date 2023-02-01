@@ -3,40 +3,46 @@ const utils = require('../utils')
 
 const BASE_NAME = 'testPostulantController'
 
-exports.search = async (req) => {
+const Console = {
+  debug: function(message, params) {console.log(`${BASE_NAME} ${message}`, ...params)},
+  error: function(message, params) {console.error(`${BASE_NAME} ${message}`, ...params)},
+}
+
+async function search(req, res, next) {
   try {
-    const {rut, email, company, analyst, test, state} = {...req.query}
-    console.log(`${BASE_NAME} ${Object.values(this)[0].name}`, rut, email, state)
+    Console.debug(`search`, [req.query])
+    const {rut, email, name, company: companyId, analyst: analystId, test: testId, state: stateId} = {...req.query}
 
     if (rut && !utils.validateRut(rut)) {
+      throw new Error('BAD_REQUEST')
+    }
+    if (name && typeof name !== 'string') {
       throw new Error('BAD_REQUEST')
     }
     if (email && typeof email !== 'string') {
       throw new Error('BAD_REQUEST')
     }
-
-    if (company && isNaN(company)) {
+    if (companyId && isNaN(companyId)) {
+      throw new Error('BAD_REQUEST')
+    }
+    if (analystId && isNaN(analystId)) {
+      throw new Error('BAD_REQUEST')
+    }
+    if (testId && isNaN(testId)) {
+      throw new Error('BAD_REQUEST')
+    }
+    if (stateId && isNaN(stateId)) {
       throw new Error('BAD_REQUEST')
     }
 
-    if (analyst && isNaN(analyst)) {
-      throw new Error('BAD_REQUEST')
-    }
+    let resp = await searchRepository.search({rut, name, email, companyId, analystId, testId, stateId})
 
-    if (test && isNaN(test)) {
-      throw new Error('BAD_REQUEST')
-    }
-
-    if (state && isNaN(state)) {
-      throw new Error('BAD_REQUEST')
-    }
-
-    let resp = await searchRepository.search({rut, email, companyId: company, analystId: analyst, testId: test, stateId: state})
-
-    console.log(`${BASE_NAME} ${Object.values(this)[0].name} response`, resp)
-    return resp
+    Console.debug(`search response`, [resp])
+    res.json(resp)
   } catch(e) {
-    console.error(`${BASE_NAME} ${Object.values(this)[0].name} error`, e)
-    throw e
+    Console.error(`search error`, [e])
+    next(e)
   }
 }
+
+module.exports = { search }
