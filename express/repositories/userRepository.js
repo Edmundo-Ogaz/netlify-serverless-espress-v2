@@ -16,7 +16,8 @@ async function findById(id) {
     throw new Error('BAD_REQUEST')
   }
   const client = new faunadb.Client({
-    secret: process.env.FAUNADB_SERVER_SECRET
+    secret: process.env.FAUNADB_SERVER_SECRET,
+    endpoint: process.env.FAUNADB_SERVER_ENDPOINT
   })
   return client.query(
     q.Let({
@@ -40,7 +41,8 @@ async function findByRut(rut) {
     throw new Error('BAD_REQUEST')
   }
   const client = new faunadb.Client({
-    secret: process.env.FAUNADB_SERVER_SECRET
+    secret: process.env.FAUNADB_SERVER_SECRET,
+    endpoint: process.env.FAUNADB_SERVER_ENDPOINT
   })
   return client.query(
     q.Let({
@@ -70,7 +72,8 @@ async function findByEmail(email) {
     throw new Error('BAD_REQUEST')
   }
   const client = new faunadb.Client({
-    secret: process.env.FAUNADB_SERVER_SECRET
+    secret: process.env.FAUNADB_SERVER_SECRET,
+    endpoint: process.env.FAUNADB_SERVER_ENDPOINT
   })
   return client.query(
     q.Let({
@@ -100,7 +103,8 @@ async function login(email, password) {
     throw new Error('BAD_REQUEST')
   }
   const client = new faunadb.Client({
-    secret: process.env.FAUNADB_SERVER_SECRET
+    secret: process.env.FAUNADB_SERVER_SECRET,
+    endpoint: process.env.FAUNADB_SERVER_ENDPOINT
   })
   return client.query(
     q.Get(
@@ -137,7 +141,8 @@ async function create(user) {
       throw new Error('BAD_REQUEST')
     }
     const client = new faunadb.Client({
-      secret: process.env.FAUNADB_SERVER_SECRET
+      secret: process.env.FAUNADB_SERVER_SECRET,
+      endpoint: process.env.FAUNADB_SERVER_ENDPOINT
     })
   
     const companyRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('company'), user.companyId))))
@@ -177,7 +182,8 @@ async function edit(user) {
     }
 
     const client = new faunadb.Client({
-      secret: process.env.FAUNADB_SERVER_SECRET
+      secret: process.env.FAUNADB_SERVER_SECRET,
+      endpoint: process.env.FAUNADB_SERVER_ENDPOINT
     })
 
     const companyRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('company'), user.companyId))))
@@ -220,7 +226,8 @@ async function registerPassword(user) {
     const hash = bcrypt.hashSync(user.password, salt);
 
     const client = new faunadb.Client({
-      secret: process.env.FAUNADB_SERVER_SECRET
+      secret: process.env.FAUNADB_SERVER_SECRET,
+      endpoint: process.env.FAUNADB_SERVER_ENDPOINT
     })
     
     const response = await client.query(
@@ -284,7 +291,8 @@ async function search({rut, name, email, companyId, profileId}) {
   Console.debug.call(this, `query`, insertion)
 
   const client = new faunadb.Client({
-    secret: process.env.FAUNADB_SERVER_SECRET
+    secret: process.env.FAUNADB_SERVER_SECRET,
+    endpoint: process.env.FAUNADB_SERVER_ENDPOINT
   })
   return client.query(
     q.Filter(

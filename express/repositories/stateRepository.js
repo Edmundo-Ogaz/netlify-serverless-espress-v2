@@ -6,7 +6,8 @@ function findAll() {
   console.log(`${BASE_NAME} ${Object.values(this)[0].name}`)
 
   const client = new faunadb.Client({
-    secret: process.env.FAUNADB_SERVER_SECRET
+    secret: process.env.FAUNADB_SERVER_SECRET,
+    endpoint: process.env.FAUNADB_SERVER_ENDPOINT
   })
   return client.query(
     q.Map(

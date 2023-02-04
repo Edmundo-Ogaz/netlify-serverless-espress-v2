@@ -82,7 +82,8 @@ exports.search = (testPostulant) => {
   console.log(`${BASE_NAME} ${Object.values(this)[0].name} query`, insertion)
 
   const client = new faunadb.Client({
-    secret: process.env.FAUNADB_SERVER_SECRET
+    secret: process.env.FAUNADB_SERVER_SECRET,
+    endpoint: process.env.FAUNADB_SERVER_ENDPOINT
   })
   return client.query(
     q.Filter(
@@ -113,23 +114,28 @@ function getModel(object) {
   return {
     id: q.Select(["ref", "id"], object),
     test: q.Select( ["data"], q.Get(q.Select(["data", "test"], object)) ),
-    postulant: 
-    {
+    postulant: {
       id: q.Select(['ref', 'id'], q.Get(q.Select(['data', 'postulant'], object))),
       firstName: q.Select(['data', 'firstName'], q.Get(q.Select(['data', 'postulant'], object))),
       lastName: q.Select(['data', 'lastName'], q.Get(q.Select(['data', 'postulant'], object)))
     },
-    company: q.Select( ["data"], q.Get(q.Select(["data", "company"], object)) ),
+    company: {
+      id: q.Select(['ref', 'id'], q.Get(q.Select(['data', 'company'], object))),
+      name: q.Select(['data', 'name'], q.Get(q.Select(['data', 'company'], object)))
+    },
     analyst: q.Let({
       data: q.Get(q.Select(["data", "analyst"], object)) 
       
-    }, 
-    {
-      firstName: q.Select(['data', 'firstName'], q.Var('data')),
-      lastName: q.Select(['data', 'lastName'], q.Var('data'))
-    }
+      }, 
+      {
+        firstName: q.Select(['data', 'firstName'], q.Var('data')),
+        lastName: q.Select(['data', 'lastName'], q.Var('data'))
+      }
     ),
-    state: q.Select( ["data"], q.Get(q.Select(["data", "state"], object)) ),
+    state: {
+      id: q.Select( ["ref", "id"], q.Get(q.Select(["data", "state"], object)) ),
+      name: q.Select( ["data", "name"], q.Get(q.Select(["data", "state"], object)) )
+    },
     date: q.Select(["data", "createdAt"], object)
   }
 }

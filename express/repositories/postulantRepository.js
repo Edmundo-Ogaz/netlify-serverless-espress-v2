@@ -16,7 +16,8 @@ async function findById(id) {
     throw new Error('BAD_REQUEST')
   }
   const client = new faunadb.Client({
-    secret: process.env.FAUNADB_SERVER_SECRET
+    secret: process.env.FAUNADB_SERVER_SECRET,
+    endpoint: process.env.FAUNADB_SERVER_ENDPOINT
   })
   return client.query(
     q.Let({
@@ -41,7 +42,8 @@ async function create(postulant) {
       throw new Error('BAD_REQUEST')
     }
     const client = new faunadb.Client({
-      secret: process.env.FAUNADB_SERVER_SECRET
+      secret: process.env.FAUNADB_SERVER_SECRET,
+      endpoint: process.env.FAUNADB_SERVER_ENDPOINT
     })
 
     const createdByRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('user'), postulant.createdById))))
@@ -79,7 +81,8 @@ async function edit(postulant) {
     }
 
     const client = new faunadb.Client({
-      secret: process.env.FAUNADB_SERVER_SECRET
+      secret: process.env.FAUNADB_SERVER_SECRET,
+      endpoint: process.env.FAUNADB_SERVER_ENDPOINT
     })
 
     const updatedByRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('user'), postulant.updatedById))))
@@ -131,7 +134,8 @@ async function search({rut, name, email}) {
   Console.debug.call(this, `query`, insertion)
 
   const client = new faunadb.Client({
-    secret: process.env.FAUNADB_SERVER_SECRET
+    secret: process.env.FAUNADB_SERVER_SECRET,
+    endpoint: process.env.FAUNADB_SERVER_ENDPOINT
   })
   return client.query(
     q.Filter(

@@ -1,0 +1,18 @@
+CreateIndex({ name: 'user_by_email', source: Collection('user'), terms: [ { field: ['data', 'email'] } ] })
+CreateIndex({ name: "user_by_rut", source: Collection('user'), terms: [ { field: ['data', "rut"] } ] })
+CreateIndex({ name: "users", source: Collection('user') })
+CreateIndex({ name: "users_by_company", source: Collection('user'), terms: [ { field: ['data', "company"] } ] })
+CreateIndex({ name: "users_by_company_and_profile", source: Collection('user'), terms: [ { field: ["data", "company"] }, { field: ["data", "profile"] } ]})
+CreateIndex({ name: "users_by_profile", source: Collection('user'), terms: [ { field: ["data", "profile"] } ] })
+
+CreateIndex({ name: "postulant_by_email", source: Collection('postulant'), terms: [ { field: ["data", "email"] } ] })
+CreateIndex({ name: "postulant_by_rut", source: Collection('postulant'), terms: [ { field: ["data", "rut"] } ] })
+CreateIndex({ name: "postulants", source: Collection('postulant') })
+
+CreateIndex({ name: "test_postulant_by_postulant_and_company_and_state", source: Collection('test_postulant'), terms: [ { field: ["data", "postulant"] }, { field: ["data", "company"] }, { field: ["data", "state"] } ] })
+CreateIndex({ name: "tests_postulants", source: Collection('test_postulant') })
+CreateIndex({ name: "tests_postulants_by_analyst", source: Collection('test_postulant'), terms: [ { field: ["data", "analyst"] } ] })
+CreateIndex({ name: "tests_postulants_by_company", source: Collection('test_postulant'), terms: [ { field: ["data", "company"] } ] })
+CreateIndex({ name: "tests_postulants_by_postulant", source: Collection('test_postulant'), terms: [ { field: ["data", "postulant"] } ] })
+CreateIndex({ name: "tests_postulants_by_state", source: Collection('test_postulant'), terms: [ { field: ["data", "state"] } ] })
+CreateIndex({ name: "tests_postulants_by_test", source: Collection('test_postulant'), terms: [ { field: ["data", "test"] } ] })

@@ -15,8 +15,6 @@ const testPostulant = require('./test-postulant')
 const testPostulantController = require('./controllers/testPostulantController')
 const stateController = require('./controllers/stateController')
 
-const testPostulantRouter = require('./routers/testPostulantRouter')
-
 const app = express();
 
 const router = express.Router();

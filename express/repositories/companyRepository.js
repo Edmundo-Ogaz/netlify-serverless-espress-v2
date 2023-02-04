@@ -3,11 +3,17 @@ const q = faunadb.query
 
 const BASE_NAME = 'companyRepository'
 
+const Console = {
+  debug: function(message, params) {console.log(`${BASE_NAME} ${message}`, ...params)},
+  error: function(message, params) {console.error(`${BASE_NAME} ${message}`, ...params)},
+}
+
 function findAll() {
-  console.log(`${BASE_NAME} ${Object.values(this)[0].name}`)
+  Console.debug(`findAll`, [])
 
   const client = new faunadb.Client({
-    secret: process.env.FAUNADB_SERVER_SECRET
+    secret: process.env.FAUNADB_SERVER_SECRET,
+    endpoint: process.env.FAUNADB_SERVER_ENDPOINT
   })
   return client.query(
     q.Map(
@@ -23,7 +29,7 @@ function findAll() {
   )
   .then(response => response.data)
   .catch((error) => {
-    console.error('error', error)
+    Console.error('error', [error])
     throw new Error(error)
   })
 }
