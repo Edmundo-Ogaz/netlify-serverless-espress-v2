@@ -2,10 +2,10 @@ run:
 	npm run start
 
 fauna-import:
-	fauna import --path=./faunadb/data --type=createdAt::dateString --secret=secret --domain=localhost --scheme=http --port=8443
+	fauna import --path=./faunadb/collection --secret=secret --domain=localhost --scheme=http --port=8443
 
 fauna-import-company:
-	fauna import --path=./faunadb/data/company.csv --type=createdAt::dateString --secret=secret --domain=localhost --scheme=http --port=8443
+	fauna import --path=./faunadb/collection/company.csv --type=createdAt::dateString --secret=secret --domain=localhost --scheme=http --port=8443
 
 fauna-import-profile:
 	fauna import --path=./faunadb/data/profile.csv --type=createdAt::dateString --secret=secret --domain=localhost --scheme=http --port=8443
@@ -30,4 +30,4 @@ fauna-shell:
 	fauna shell --secret=secret --domain=localhost --scheme=http --port=8443
 
 fauna-docker:
-	docker run --rm --name faunadb -p 8443:8443 -p 8084:8084 fauna/faunadb
+	docker run --rm --name faunadb -p 8443:8443 -p 8084:8084 -v faunadb-applicant:/var/lib/faunadb fauna/faunadb

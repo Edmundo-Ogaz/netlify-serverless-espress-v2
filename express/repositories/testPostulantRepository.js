@@ -1,17 +1,23 @@
-const utils = require('./utils')
+const utils = require('../utils')
 const faunadb = require('faunadb')
 const q = faunadb.query
 
-const BASE_NAME = 'test-postulant'
+const BASE_NAME = 'testPostulantRepository'
+
+const Console = {
+  debug: function(message, params) {console.log(`${BASE_NAME} ${message}`, ...params)},
+  error: function(message, params) {console.error(`${BASE_NAME} ${message}`, ...params)},
+}
 
 exports.assign = async assign => {
   try {
-    console.log('test assign assign', assign.companyId)
+    Console.debug('assign', [assign])
     if (!assign.testId || !assign.postulantId || !assign.companyId || !assign.analystId || !assign.createdById) {
       throw new Error('BAD_REQUEST')
     }
     const client = new faunadb.Client({
-      secret: process.env.FAUNADB_SERVER_SECRET
+      secret: process.env.FAUNADB_SERVER_SECRET,
+      endpoint: process.env.FAUNADB_SERVER_ENDPOINT
     })
   
     const testRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('test'), assign.testId))))
@@ -95,7 +101,8 @@ exports.saveIC = async (id, checks) => {
     }
 
     const client = new faunadb.Client({
-      secret: process.env.FAUNADB_SERVER_SECRET
+      secret: process.env.FAUNADB_SERVER_SECRET,
+      endpoint: process.env.FAUNADB_SERVER_ENDPOINT
     })
 
     const stateRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('test_state'), process.env.TEST_STATE_DONE_ID))))
@@ -114,7 +121,7 @@ exports.saveIC = async (id, checks) => {
                 omitted,
               },
               state: stateRef,
-              updated_at: q.Now(),
+              updatedAt: q.Now(),
             },
           },
       )
@@ -133,7 +140,8 @@ exports.findByPostulantAndCompanyAndState = (postulantId, companyId, stateId) =>
     throw new Error('BAD_REQUEST')
   }
   const client = new faunadb.Client({
-    secret: process.env.FAUNADB_SERVER_SECRET
+    secret: process.env.FAUNADB_SERVER_SECRET,
+    endpoint: process.env.FAUNADB_SERVER_ENDPOINT
   })
   return client.query(
     q.Map(
@@ -167,7 +175,8 @@ exports.findAllDone = function findAllDone() {
   console.log(`${BASE_NAME} ${Object.values(this)[0].name}`)
 
   const client = new faunadb.Client({
-    secret: process.env.FAUNADB_SERVER_SECRET
+    secret: process.env.FAUNADB_SERVER_SECRET,
+    endpoint: process.env.FAUNADB_SERVER_ENDPOINT
   })
   return client.query(
     q.Map(
@@ -187,7 +196,7 @@ exports.findAllDone = function findAllDone() {
           correct: q.Select(['data', 'answer', 'correct'], q.Get(q.Var('X'))),
           wrong: q.Select(['data', 'answer', 'wrong'], q.Get(q.Var('X'))),
           omitted: q.Select(['data', 'answer', 'omitted'], q.Get(q.Var('X'))),
-          answerDate: q.Select(['data', 'updated_at'], q.Get(q.Var('X'))),
+          answerDate: q.Select(['data', 'updatedAt'], q.Get(q.Var('X'))),
           state: q.Select(['data', 'state', 'id'], q.Get(q.Var('X'))),
         }
       )
@@ -201,12 +210,13 @@ exports.findAllDone = function findAllDone() {
 }
 
 exports.getIcById = (id) => {
-  console.log('test getIcById', id)
+  Console.debug('getIcById', [id])
   if (isNaN(id)) {
     throw new Error('BAD_REQUEST')
   }
   const client = new faunadb.Client({
-    secret: process.env.FAUNADB_SERVER_SECRET
+    secret: process.env.FAUNADB_SERVER_SECRET,
+    endpoint: process.env.FAUNADB_SERVER_ENDPOINT
   })
   return client.query(
     q.Let({
@@ -215,8 +225,19 @@ exports.getIcById = (id) => {
     {
      test: q.Select(['data'], q.Get(q.Select(['data', 'test'], q.Var('data')))),
      postulant: q.Select(['data'], q.Get(q.Select(['data', 'postulant'], q.Var('data')))),
-     answer: q.Select(['data', 'answer'], q.Var('data')),
-     date: q.Select(['data', 'updated_at'], q.Var('data')),
+     answer: 
+      q.If( q.ContainsPath(['data', 'answer'], q.Var('data')), 
+        q.Select(['data', 'answer'], q.Var('data')), 
+        {}
+      ),
+     
+     //q.Select(['data', 'answer'], q.Var('data')),
+     date: 
+      q.If( q.ContainsPath(['data', 'updatedAt'], q.Var('data')), 
+          q.Select(['data', 'updatedAt'], q.Var('data')), 
+          {}
+        ),
+     //q.Select(['data', 'updated_at'], q.Var('data')),
      state: q.Select(['data'], q.Get(q.Select(['data', 'state'], q.Var('data')))),
     }
     )
@@ -233,7 +254,8 @@ exports.search = () => {
   console.log('test search')
   
   const client = new faunadb.Client({
-    secret: process.env.FAUNADB_SERVER_SECRET
+    secret: process.env.FAUNADB_SERVER_SECRET,
+    endpoint: process.env.FAUNADB_SERVER_ENDPOINT
   })
   return client.query(
     q.Map(
@@ -271,7 +293,8 @@ exports.searchByRut = (rut) => {
     throw new Error('BAD_REQUEST')
   
   const client = new faunadb.Client({
-    secret: process.env.FAUNADB_SERVER_SECRET
+    secret: process.env.FAUNADB_SERVER_SECRET,
+    endpoint: process.env.FAUNADB_SERVER_ENDPOINT
   })
   return client.query(
     q.Map(

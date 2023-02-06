@@ -32,12 +32,12 @@ async function create(req) {
     if (!body || !body.rut || !body.firstName || !body.lastName || !body.email || !body.company || !body.profile || !body.createdBy) {
       throw new Error('BAD_REQUEST')
     }
-    const isExistRut =  await userRepository.findByRut(body.rut)
-    if (isExistRut) {
+    const objectByRut =  await userRepository.findByRut(body.rut)
+    if (Object.keys(objectByRut).length !== 0) {
       throw new Error('USER_EXIST')
     }
-    const isExistEmail =  await userRepository.findByEmail(body.email)
-    if (isExistEmail) {
+    const objectByEmail =  await userRepository.findByEmail(body.email)
+    if (Object.keys(objectByEmail).length !== 0) {
       throw new Error('USER_EXIST')
     }
 

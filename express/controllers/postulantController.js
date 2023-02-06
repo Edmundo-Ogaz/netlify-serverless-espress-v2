@@ -33,6 +33,11 @@ async function create(req) {
       throw new Error('BAD_REQUEST')
     }
 
+    const object = await postulantRepository.findByRut(body.rut)
+    if (Object.keys(object).length !== 0) {
+      throw new Error('POSTULANT_EXIST')
+    }
+
     const { rut, firstName, lastName, email, age, sexo, createdBy: createdById } = body;
     const resp = await postulantRepository.create({ rut, firstName, lastName, age, sexo, email, createdById })
     Console.debug.call(this, `create response`, [resp])

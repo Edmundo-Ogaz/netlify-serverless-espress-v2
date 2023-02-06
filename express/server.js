@@ -8,10 +8,9 @@ const userRepository = require('./repositories/userRepository')
 const userController = require('./controllers/userController')
 const postulantController = require('./controllers/postulantController')
 const companyRepository = require('./repositories/companyRepository')
-const profileRepository = require('./repositories/profileProfiles')
+const profileRepository = require('./repositories/profileRepository')
 const testRepository = require('./repositories/testRepository')
-const postulant = require('./postulant')
-const testPostulant = require('./test-postulant')
+const testPostulant = require('./repositories/testPostulantRepository')
 const testPostulantController = require('./controllers/testPostulantController')
 const stateController = require('./controllers/stateController')
 
@@ -150,32 +149,33 @@ router.get('/tests', async (req, res, next) => {
   }
 });
 
-router.post("/tests/:testId/postulants/:postulantId", async (req, res, next) => {
-  try {
-    const testId = req.params.testId
-    const postulantId = req.params.postulantId
-    const body = req.body
-    console.log(`${BASE_NAME} ${req.url}`, body.companyId)
-    if (!testId || !postulantId || !body || !body.companyId || !body.analystId || !body.createdById) {
-      throw new Error('BAD_REQUEST')
-    }
+router.post("/tests/:testId/postulants/:postulantId", testPostulantController.assign)
+// router.post("/tests/:testId/postulants/:postulantId", async (req, res, next) => {
+//   try {
+//     const testId = req.params.testId
+//     const postulantId = req.params.postulantId
+//     const body = req.body
+//     console.log(`${BASE_NAME} ${req.url}`, body.companyId)
+//     if (!testId || !postulantId || !body || !body.companyId || !body.analystId || !body.createdById) {
+//       throw new Error('BAD_REQUEST')
+//     }
 
-    const assign = {
-      testId,
-      postulantId,
-      companyId: body.companyId,
-      analystId: body.analystId,
-      createdById: body.createdById,
-    }
+//     const assign = {
+//       testId,
+//       postulantId,
+//       companyId: body.companyId,
+//       analystId: body.analystId,
+//       createdById: body.createdById,
+//     }
 
-    const resp = await testPostulant.assign(assign)
-    console.log(`${BASE_NAME} ${req.url} response`, resp)
-    res.json(resp);
-  } catch(err) {
-    console.error(`${BASE_NAME} ${req.url}`, err)
-    next(err)
-  }
-});
+//     const resp = await testPostulant.assign(assign)
+//     console.log(`${BASE_NAME} ${req.url} response`, resp)
+//     res.json(resp);
+//   } catch(err) {
+//     console.error(`${BASE_NAME} ${req.url}`, err)
+//     next(err)
+//   }
+// });
 
 router.get("/postulants", async (req, res, next) => {
   try {

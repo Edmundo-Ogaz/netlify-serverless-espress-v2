@@ -1,4 +1,21 @@
-Create( Collection('user'), { data: { "rut": "15331265-6", "firstName": "tet", "lastName": "test", "email": "1234@1234.cl", "company": Ref(Collection('company'), "355732403516342784"), "profile": Ref(Collection('profile'), "355732403844547072"), "password": "$2a$10$mT1nCszZCdDJGINq4.0.zeBBFb033kJwUCwyg3494eeBRGBCk9NXG" } } )
+Create(Ref(Collection('company'), '1'), { data: { name: 'Applicant', createdAt: Now() } }, )
+Create(Ref(Collection('company'), '2'), { data: { name: 'Jobconvo', createdAt: Now() } }, )
+
+Create(Ref(Collection('profile'), '1'), { data: { name: 'administrador', createdAt: Now() } }, )
+Create(Ref(Collection('profile'), '2'), { data: { name: 'analista', createdAt: Now() } }, )
+Create(Ref(Collection('profile'), '3'), { data: { name: 'asistente', createdAt: Now() } }, )
+
+Create(Ref(Collection('test'), '1'), { data: { name: 'IC', createdAt: Now() } }, )
+Create(Ref(Collection('test'), '2'), { data: { name: 'DISC', createdAt: Now() } }, )
+
+Create(Ref(Collection('test_state'), '1'), { data: { name: 'pendiente', createdAt: Now() } }, )
+Create(Ref(Collection('test_state'), '2'), { data: { name: 'completo', createdAt: Now() } }, )
+
+Create(Ref(Collection('user'), '1'), { data: { "rut": "test", "firstName": "test", "lastName": "test", "email": "test@test.cl", "company": Ref(Collection('company'), "1"), "profile": Ref(Collection('profile'), "1"), "password": "$2a$10$mT1nCszZCdDJGINq4.0.zeBBFb033kJwUCwyg3494eeBRGBCk9NXG" } } )
 
 
-Update( Ref(Collection('user'), "355657428846510592"), { data: {"password": "$2a$10$mT1nCszZCdDJGINq4.0.zeBBFb033kJwUCwyg3494eeBRGBCk9NXG"} })
+Update( Ref(Collection('user'), "1"), { data: {"company": Ref(Collection('company'), "355756420492165632")} })
+
+Update( Ref(Collection('user'), "1"), { data: {"profile": Ref(Collection('profile'), "1")} })
+
+Delete(Ref(Collection('user'), '355777498773979648'))

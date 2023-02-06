@@ -11,7 +11,7 @@ const Console = {
 }
 
 async function findById(id) {
-  Console.debug.call(this, 'findById', [id])
+  Console.debug('findById', [id])
   if (isNaN(id)) {
     throw new Error('BAD_REQUEST')
   }
@@ -30,14 +30,41 @@ async function findById(id) {
   )
   .then(response => response)
   .catch((error) => {
-    Console.error.call(this, 'findById error', [error])
+    Console.error('findById error', [error])
     throw new Error(error)
+  })
+}
+
+function findByRut(rut) {
+  Console.debug('findByRut', [rut])
+  if (!rut) {
+    throw new Error('BAD_REQUEST')
+  }
+  const client = new faunadb.Client({
+    secret: process.env.FAUNADB_SERVER_SECRET,
+    endpoint: process.env.FAUNADB_SERVER_ENDPOINT
+  })
+  return client.query(
+    q.Get(
+      q.Match(
+        q.Ref('indexes/postulant_by_rut'),
+        rut
+      )
+    )
+  )
+  .then( response => {
+    return {id: response.ref.id, ...response.data}
+  }).catch((e) => {
+    Console.error('findByRut error', [e])
+    if (e.requestResult.statusCode === 404)
+      return {}
+    throw e
   })
 }
 
 async function create(postulant) {
   try {
-    Console.debug.call(this, 'create', [postulant])
+    Console.debug('create', [postulant])
     if (!postulant.rut || !postulant.firstName || !postulant.lastName || !postulant.age || !postulant.sexo || !postulant.email || !postulant.createdById) {
       throw new Error('BAD_REQUEST')
     }
@@ -65,17 +92,17 @@ async function create(postulant) {
           },
         )
       )
-      Console.debug.call(this, 'created', [response])
+      Console.debug('created', [response])
       return response.data
   } catch(e) {
-    Console.error.call(this, 'create error', [e])
+    Console.error('create error', [e])
     throw new Error(e.message)
   }
 }
 
 async function edit(postulant) {
   try {
-    Console.debug.call(this, 'edit', [postulant])
+    Console.debug('edit', [postulant])
     if (!postulant.id || !postulant.rut || !postulant.firstName || !postulant.lastName || !postulant.email || !postulant.age || !postulant.sexo || !postulant.updatedById) {
       throw new Error('BAD_REQUEST')
     }
@@ -104,16 +131,16 @@ async function edit(postulant) {
         },
       )
     )
-    Console.debug.call(this, 'edit response', [])
+    Console.debug('edit response', [])
     return response.data
   } catch(e) {
-    Console.error.call(this, 'edit error', [e])
+    Console.error('edit error', [e])
     throw new Error(e.message)
   }
 }
 
 async function search({rut, name, email}) {
-  Console.debug.call(this, `search`, [rut, name, email])
+  Console.debug(`search`, [rut, name, email])
 
   let insertion = [q.Match(q.Index("postulants"))]
   if (rut && utils.validateRut(rut)) {
@@ -131,7 +158,7 @@ async function search({rut, name, email}) {
       q.Index("postulant_by_email"), email))
   }
 
-  Console.debug.call(this, `query`, insertion)
+  Console.debug(`query`, insertion)
 
   const client = new faunadb.Client({
     secret: process.env.FAUNADB_SERVER_SECRET,
@@ -157,7 +184,7 @@ async function search({rut, name, email}) {
   )
   .then(response => response.data)
   .catch((error) => {
-    Console.error.call(this, `search error`, [error])
+    Console.error(`search error`, [error])
     throw new Error(error)
   })
 }
@@ -166,16 +193,31 @@ function getModel(object) {
   return {
     id: q.Select(['ref', 'id'], object),
     rut: q.Select(['data', 'rut'], object),
-    firstName: q.If( q.ContainsPath(['data', 'firstName'], object), 
-      q.Select(['data', 'firstName'], object), "" ),
-    lastName: q.If( q.ContainsPath(['data', 'lastName'], object), 
-      q.Select(['data', 'lastName'], object), "" ),
-    email: q.If( q.ContainsPath(['data', 'email'], object), 
-      q.Select(['data', 'email'], object), "" ),
-    age: q.If( q.ContainsPath(['data', 'age'], object), 
-      q.Select(['data', 'age'], object), "" ),
-    sexo: q.If( q.ContainsPath(['data', 'sexo'], object), 
-      q.Select(['data', 'sexo'], object), "" ),
+    firstName: 
+      q.If( q.ContainsPath(['data', 'firstName'], object), 
+        q.Select(['data', 'firstName'], object), 
+        "" 
+      ),
+    lastName: 
+      q.If( q.ContainsPath(['data', 'lastName'], object), 
+        q.Select(['data', 'lastName'], object), 
+        "" 
+      ),
+    email: 
+      q.If( q.ContainsPath(['data', 'email'], object), 
+        q.Select(['data', 'email'], object), 
+        "" 
+      ),
+    age: 
+      q.If( q.ContainsPath(['data', 'age'], object), 
+        q.Select(['data', 'age'], object), 
+        "" 
+      ),
+    sexo: 
+      q.If( q.ContainsPath(['data', 'sexo'], object), 
+        q.Select(['data', 'sexo'], object), 
+        "" 
+      ),
     createdBy: 
       q.If( q.ContainsPath(['data', 'createdBy'], object),
         {
@@ -199,9 +241,12 @@ function getModel(object) {
         },
         {}
       ),
-    updatedAt: q.If( q.ContainsPath(['data', 'updatedAt'], object), 
-      q.Select(['data', 'updatedAt'], object), {} ),
+    updatedAt: 
+      q.If( q.ContainsPath(['data', 'updatedAt'], object), 
+        q.Select(['data', 'updatedAt'], object), 
+        {} 
+      ),
   }
 }
 
-module.exports = { findById, create, edit, search }
+module.exports = { findById, findByRut, create, edit, search }

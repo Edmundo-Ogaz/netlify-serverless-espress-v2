@@ -1,4 +1,5 @@
 const searchRepository = require('../repositories/searchRepository')
+const testPostulantRepository = require('../repositories/testPostulantRepository')
 const utils = require('../utils')
 
 const BASE_NAME = 'testPostulantController'
@@ -6,6 +7,33 @@ const BASE_NAME = 'testPostulantController'
 const Console = {
   debug: function(message, params) {console.log(`${BASE_NAME} ${message}`, ...params)},
   error: function(message, params) {console.error(`${BASE_NAME} ${message}`, ...params)},
+}
+
+async function assign(req, res, next) {
+  try {
+    const testId = req.params.testId
+    const postulantId = req.params.postulantId
+    const body = req.body
+    Console.debug(`assign`, [body])
+    if (!testId || !postulantId || !body || !body.companyId || !body.analystId || !body.createdById) {
+      throw new Error('BAD_REQUEST')
+    }
+
+    const assign = {
+      testId,
+      postulantId,
+      companyId: body.companyId,
+      analystId: body.analystId,
+      createdById: body.createdById,
+    }
+
+    const resp = await testPostulantRepository.assign(assign)
+    Console.debug(`assign response`, [resp])
+    res.json(resp);
+  } catch(err) {
+    Console.error(`assign error`, [err])
+    next(err)
+  }
 }
 
 async function search(req, res, next) {
@@ -45,4 +73,4 @@ async function search(req, res, next) {
   }
 }
 
-module.exports = { search }
+module.exports = { assign, search }

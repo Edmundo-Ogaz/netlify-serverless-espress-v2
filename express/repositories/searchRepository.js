@@ -117,7 +117,8 @@ function getModel(object) {
     postulant: {
       id: q.Select(['ref', 'id'], q.Get(q.Select(['data', 'postulant'], object))),
       firstName: q.Select(['data', 'firstName'], q.Get(q.Select(['data', 'postulant'], object))),
-      lastName: q.Select(['data', 'lastName'], q.Get(q.Select(['data', 'postulant'], object)))
+      lastName: q.Select(['data', 'lastName'], q.Get(q.Select(['data', 'postulant'], object))),
+      email: q.Select(['data', 'email'], q.Get(q.Select(['data', 'postulant'], object)))
     },
     company: {
       id: q.Select(['ref', 'id'], q.Get(q.Select(['data', 'company'], object))),

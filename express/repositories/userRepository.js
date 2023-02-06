@@ -29,9 +29,11 @@ async function findById(id) {
     )
   )
   .then(response => response)
-  .catch((error) => {
-    Console.error.call(this, 'findById error', [error])
-    throw new Error(error)
+  .catch((e) => {
+    Console.error.call(this, 'findById error', [e])
+    if (e.requestResult.statusCode === 404)
+      return {}
+    throw e
   })
 }
 
@@ -60,9 +62,11 @@ async function findByRut(rut) {
     Console.debug.call(this, 'findByRut response', [response])
     return response
   })
-  .catch((error) => {
-    console.error('user login error', error)
-    return null
+  .catch((e) => {
+    Console.error('findByRut error', [e])
+    if (e.requestResult.statusCode === 404)
+      return {}
+    throw e
   })
 }
 
@@ -92,8 +96,10 @@ async function findByEmail(email) {
     return response
   })
   .catch((e) => {
-    Console.error.call(this, 'findByEmail error', [e])
-    return null
+    Console.error('findByEmail error', [e])
+    if (e.requestResult.statusCode === 404)
+      return {}
+    throw e
   })
 }
 
@@ -289,6 +295,7 @@ async function search({rut, name, email, companyId, profileId}) {
   }
 
   Console.debug.call(this, `query`, insertion)
+  console.log('query', insertion)
 
   const client = new faunadb.Client({
     secret: process.env.FAUNADB_SERVER_SECRET,
@@ -323,12 +330,21 @@ function getModel(object) {
   return {
     id: q.Select(['ref', 'id'], object),
     rut: q.Select(['data', 'rut'], object),
-    firstName: q.If( q.ContainsPath(['data', 'firstName'], object), 
-      q.Select(['data', 'firstName'], object), "" ),
-    lastName: q.If( q.ContainsPath(['data', 'lastName'], object), 
-      q.Select(['data', 'lastName'], object), "" ),
-    email: q.If( q.ContainsPath(['data', 'email'], object), 
-      q.Select(['data', 'email'], object), "" ),
+    firstName: 
+      q.If( q.ContainsPath(['data', 'firstName'], object), 
+        q.Select(['data', 'firstName'], object), 
+        "" 
+      ),
+    lastName: 
+      q.If( q.ContainsPath(['data', 'lastName'], object), 
+        q.Select(['data', 'lastName'], object), 
+        "" 
+      ),
+    email: 
+      q.If( q.ContainsPath(['data', 'email'], object), 
+        q.Select(['data', 'email'], object), 
+        "" 
+      ),
     company: 
       q.If( q.ContainsPath(['data', 'profile'], object),
         { 
@@ -345,8 +361,11 @@ function getModel(object) {
         },
         {}
       ),
-    updatedAt: q.If( q.ContainsPath(['data', 'updatedAt'], object), 
-      q.Select(['data', 'updatedAt'], object), {} ),
+    updatedAt: 
+      q.If( q.ContainsPath(['data', 'updatedAt'], object), 
+        q.Select(['data', 'updatedAt'], object), 
+        {} 
+      ),
   }
 }
 

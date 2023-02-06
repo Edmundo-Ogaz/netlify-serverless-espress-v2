@@ -1,7 +1,7 @@
 const faunadb = require('faunadb')
 const q = faunadb.query
 
-const BASE_NAME = 'profile'
+const BASE_NAME = 'profileRepository'
 
 function findAll() {
   console.log(`${BASE_NAME} ${Object.values(this)[0].name}`)
