@@ -244,35 +244,36 @@ router.get("/tests-postulants", async (req, res, next) => {
   }
 });
 
-router.get("/tests/postulants/ic", async (req, res, next) => {
-  try {
-    console.log(`${BASE_NAME} ${req.url}`)
+// router.get("/tests/postulants/ic", async (req, res, next) => {
+//   try {
+//     console.log(`${BASE_NAME} ${req.url}`)
 
-    const resp = await testPostulant.findAllDone()
-    console.log(`${BASE_NAME} ${req.url} response`, resp)
-    res.json(resp)
-  } catch(err) {
-    console.error(`${BASE_NAME} ${req.url} error`, err)
-    next(err)
-  }
-});
+//     const resp = await testPostulant.findAllDone()
+//     console.log(`${BASE_NAME} ${req.url} response`, resp)
+//     res.json(resp)
+//   } catch(err) {
+//     console.error(`${BASE_NAME} ${req.url} error`, err)
+//     next(err)
+//   }
+// });
 
-router.get("/tests/postulants/ic/:id", async (req, res, next) => {
-  try {
-    const id = req.params.id
-    console.log(`${BASE_NAME} ${req.url}`,  id)
-    if (isNaN(id)) {
-      throw new Error('BAD_REQUEST')
-    }
+router.get("/tests/postulants/:id", testPostulantController.getById)
+// router.get("/tests/postulants/ic/:id", async (req, res, next) => {
+//   try {
+//     const id = req.params.id
+//     console.log(`${BASE_NAME} ${req.url}`,  id)
+//     if (isNaN(id)) {
+//       throw new Error('BAD_REQUEST')
+//     }
 
-    const resp = await testPostulant.getIcById(id)
-    console.log(`${BASE_NAME} ${req.url} response`, resp)
-    res.json(resp)
-  } catch(err) {
-    console.error(`${BASE_NAME} ${req.url}`, err)
-    next(err)
-  }
-});
+//     const resp = await testPostulant.getIcById(id)
+//     console.log(`${BASE_NAME} ${req.url} response`, resp)
+//     res.json(resp)
+//   } catch(err) {
+//     console.error(`${BASE_NAME} ${req.url}`, err)
+//     next(err)
+//   }
+// });
 
 router.patch("/tests/postulants/ic/:id", async (req, res, next) => {
   try {
@@ -292,7 +293,7 @@ router.patch("/tests/postulants/ic/:id", async (req, res, next) => {
   }
 });
 
-router.get("/tests/postulants/search", testPostulantController.search)
+router.get("/tests/postulants", testPostulantController.search)
 
 router.get("/states", async (req, res, next) => {
   try {

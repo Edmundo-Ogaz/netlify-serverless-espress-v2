@@ -9,6 +9,23 @@ const Console = {
   error: function(message, params) {console.error(`${BASE_NAME} ${message}`, ...params)},
 }
 
+async function getById(req, res, next) {
+  try {
+    const id = req.params.id
+    Console.debug(`getById`, [id])
+    if (isNaN(id)) {
+      throw new Error('BAD_REQUEST')
+    }
+
+    const resp = await testPostulantRepository.getIcById(id)
+    Console.debug(`c response`, [resp])
+    res.json(resp)
+  } catch(err) {
+    Console.error(`getById error`, [err])
+    next(err)
+  }
+}
+
 async function assign(req, res, next) {
   try {
     const testId = req.params.testId
@@ -73,4 +90,4 @@ async function search(req, res, next) {
   }
 }
 
-module.exports = { assign, search }
+module.exports = { getById, assign, search }
