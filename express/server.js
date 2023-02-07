@@ -25,93 +25,14 @@ const Console = {
   error: (message, params, req) => console.error(`${BASE_NAME} ${req.method} ${req.url} ${message}`, ...params),
 }
 
-router.get('/health', (req, res) => {
-  Console.debug('', [], req)
-  res.json({message: "alive"});
-});
+router.get('/health', (req, res) => { res.json({message: "alive"}) });
 
-router.get('/users', async (req, res, next) => {
-  try {
-      Console.debug('', [], req)
-      const resp = await userController.search(req)
-      Console.debug(`response`, [], req)
-      res.json(resp);
-  } catch(err) {
-    Console.error(``, [err], req)
-    next(err)
-  }
-});
-
-router.post("/users", async (req, res, next) => {
-  try {
-    Console.debug('', [req.body], req)
-    const resp = await userController.create(req)
-    Console.debug.call(this, `response`, [], req)
-    res.json(resp);
-  } catch(err) {
-    Console.error.call(this, `error`, [err], req)
-    next(err)
-  }
-});
-
-router.get('/users/:id', async (req, res, next) => {
-  try {
-    Console.debug.call(this, ``, [], req)
-    const resp = await userController.findById(req)
-    Console.debug.call(this, `response`, [resp], req)
-    res.json(resp);
-  } catch(err) {
-    Console.error.call(this, `error`, [err], req)
-    next(err)
-  }
-});
-
-router.patch("/users/:id", async (req, res, next) => {
-  try {
-    Console.debug.call(this, ``, [], req)
-    const resp = await userController.edit(req)
-    Console.debug.call(this, `response`, [], req)
-    res.json(resp);
-  } catch(err) {
-    Console.error.call(this, `error`, [err], req)
-    next(err)
-  }
-});
-
-router.patch("/users/:id/password", async (req, res, next) => {
-  try {
-    const id = req.params.id
-    const body = req.body
-    console.log(`${BASE_NAME} ${req.url}`, id)
-    if (!id || !body || !body.password) {
-      throw new Error('BAD_REQUEST')
-    }
-
-    const resp = await userRepository.registerPassword({ id, password: body.password })
-    console.log(`${BASE_NAME} ${req.url} response`)
-    res.json(resp);
-  } catch(err) {
-    console.error(`${BASE_NAME} ${req.url} error`, err)
-    next(err)
-  }
-});
-
-router.post("/users/login", async (req, res, next) => {
-  try {
-    const body = req.body
-    console.log(`${BASE_NAME} ${req.url}`, body.email)
-    if (!body || !body.email || !body.password) {
-      throw new Error('BAD_REQUEST')
-    }
-
-    const resp = await userRepository.login(body.email, body.password)
-    console.log(`${BASE_NAME} ${req.url} response`, resp)
-    res.json(resp);
-  } catch(err) {
-    console.error(`${BASE_NAME} ${req.url}`, err)
-    next(err)
-  }
-});
+router.get('/users', userController.search)
+router.post('/users', userController.create)
+router.get('/users/:id', userController.findById)
+router.patch("/users/:id", userController.edit)
+router.post("/users/login", userController.login)
+router.patch("/users/:id/password", userController.registerPassword)
 
 router.get('/companies', async (req, res, next) => {
   try {

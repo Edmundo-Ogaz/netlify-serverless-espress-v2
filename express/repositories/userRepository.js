@@ -224,7 +224,7 @@ async function edit(user) {
 async function registerPassword(user) {
   try {
     console.log('user register password', user.id)
-    if (!user.id || !user.password || !user.updatedPassword) {
+    if (!user.id || !user.password) {
       throw new Error('BAD_REQUEST')
     }
 
