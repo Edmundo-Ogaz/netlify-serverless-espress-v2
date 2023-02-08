@@ -8,27 +8,27 @@ const Console = {
   error: function(message, params) {console.error(`${BASE_NAME} ${message}`, ...params)}
 }
 
-async function findById(req) {
+async function findById(req, res, next) {
   try {
     const id = req.params.id;
-    Console.debug.call(this, `findById`, [id])
+    Console.debug(`findById`, [id])
     if (isNaN(id)) {
       throw new Error('BAB_REQUEST')
     }
 
     const resp = await postulantRepository.findById(id)
-    Console.debug.call(this, `findById response`, [resp])
-    return resp
+    Console.debug(`findById response`, [resp])
+    res.json(resp);
   } catch(e) {
-    Console.error.call(this, `findById error`, [e])
-    throw e
+    Console.error(`findById error`, [e])
+    next(e)
   }
 }
 
-async function create(req) {
+async function create(req, res, next) {
   try {
     const body = req.body
-    Console.debug.call(this, `create`, [body])
+    Console.debug(`create`, [body])
     if (!body || !body.rut || !body.firstName || !body.lastName || !body.age || !body.sexo || !body.email || !body.createdBy) {
       throw new Error('BAD_REQUEST')
     }
@@ -40,19 +40,19 @@ async function create(req) {
 
     const { rut, firstName, lastName, email, age, sexo, createdBy: createdById } = body;
     const resp = await postulantRepository.create({ rut, firstName, lastName, age, sexo, email, createdById })
-    Console.debug.call(this, `create response`, [resp])
-    return resp
+    Console.debug(`create response`, [resp])
+    res.json(resp);
   } catch(e) {
-    Console.error.call(this, `create error`, [e])
-    throw e
+    Console.error(`create error`, [e])
+    next(e)
   }
 }
 
-async function edit(req) {
+async function edit(req, res, next) {
   try {
     const id = req.params.id
     const body = req.body
-    Console.debug.call(this, `edit`, [id])
+    Console.debug(`edit`, [id])
     if (!id || !body || !body.rut || !body.firstName || !body.lastName || !body.email || !body.age || !body.sexo || !body.updatedBy) {
       throw new Error('BAD_REQUEST')
     }
@@ -60,19 +60,18 @@ async function edit(req) {
     const {rut, firstName, lastName, email, age, sexo , updatedBy: updatedById} = {...body}
 
     const resp = await postulantRepository.edit({ id, rut, firstName, lastName, email, age, sexo, updatedById })
-    Console.debug.call(this, `response`, [])
-    return resp
+    Console.debug(`edit response`, [])
+    res.json(resp);
   } catch(e) {
-    Console.error.call(this, `error`, [e])
-    throw e
+    Console.error(`edit error`, [e])
+    next(e)
   }
 }
 
-async function search(req) {
+async function search(req, res, next) {
   try {
+    Console.debug('search', [req.query])
     const {rut, name, email} = {...req.query}
-    Console.debug.call(this, 'search', [rut, name, email])
-
     if (rut && !utils.validateRut(rut)) {
       throw new Error('BAD_REQUEST')
     }
@@ -85,11 +84,11 @@ async function search(req) {
 
     let resp = await postulantRepository.search({rut, name, email})
 
-    Console.debug.call(this, `response`, [resp])
-    return resp
+    Console.debug(`response`, [resp])
+    res.json(resp);
   } catch(e) {
-    Console.error.call(this, `error`, [e])
-    throw e
+    Console.error(`error`, [e])
+    next(err)
   }
 }
 

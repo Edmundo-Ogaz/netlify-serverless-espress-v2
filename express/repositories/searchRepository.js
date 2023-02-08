@@ -13,6 +13,7 @@ exports.search = (testPostulant) => {
   Console.debug(`search`, [testPostulant])
 
   let insertion = [q.Match(q.Index("tests_postulants"))]
+
   if (testPostulant.rut && utils.validateRut(testPostulant.rut)) {
     insertion.push(q.Match(
       q.Index("tests_postulants_by_postulant"),

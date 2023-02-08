@@ -2,17 +2,20 @@ const stateRepository = require('../repositories/stateRepository')
 
 const BASE_NAME = 'stateController'
 
-function findAll() {
+const Console = {
+  debug: function(message, params) {console.log(`${BASE_NAME} ${message}`, ...params)},
+  error: function(message, params) {console.error(`${BASE_NAME} ${message}`, ...params)},
+}
+
+async function findAll(req, res, next) {
   try {
-    console.log(`${BASE_NAME} ${Object.values(this)[0].name}`)
-
-    let resp = stateRepository.findAll({})
-
-    console.log(`${BASE_NAME} ${Object.values(this)[0].name} response`, resp)
-    return resp
+    Console.debug(`findAll`, [])
+    let resp = await stateRepository.findAll({})
+    Console.debug(`findAll response`, [resp])
+    res.json(resp)
   } catch(e) {
-    console.error(`${BASE_NAME} ${Object.values(this)[0].name} error`, e)
-    throw e
+    Console.error(`findAll error`, [e])
+    next(e)
   }
 }
 

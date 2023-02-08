@@ -17,8 +17,8 @@ async function getById(req, res, next) {
       throw new Error('BAD_REQUEST')
     }
 
-    const resp = await testPostulantRepository.getIcById(id)
-    Console.debug(`c response`, [resp])
+    const resp = await testPostulantRepository.getById(id)
+    Console.debug(`getById response`, [resp])
     res.json(resp)
   } catch(err) {
     Console.error(`getById error`, [err])
@@ -36,7 +36,7 @@ async function assign(req, res, next) {
       throw new Error('BAD_REQUEST')
     }
 
-    const assign = {
+    const params = {
       testId,
       postulantId,
       companyId: body.companyId,
@@ -44,7 +44,7 @@ async function assign(req, res, next) {
       createdById: body.createdById,
     }
 
-    const resp = await testPostulantRepository.assign(assign)
+    const resp = await testPostulantRepository.assign(params)
     Console.debug(`assign response`, [resp])
     res.json(resp);
   } catch(err) {
@@ -56,7 +56,7 @@ async function assign(req, res, next) {
 async function search(req, res, next) {
   try {
     Console.debug(`search`, [req.query])
-    const {rut, email, name, company: companyId, analyst: analystId, test: testId, state: stateId} = {...req.query}
+    const { rut, email, name, company: companyId, analyst: analystId, test: testId, state: stateId} = {...req.query}
 
     if (rut && !utils.validateRut(rut)) {
       throw new Error('BAD_REQUEST')
@@ -90,4 +90,22 @@ async function search(req, res, next) {
   }
 }
 
-module.exports = { getById, assign, search }
+async function saveIC(req, res, next) {
+  try {
+    const id = req.params.id
+    const body = req.body
+    Console.debug(`saveIC`, [id, body])
+    if (!id || !body || !Array.isArray(body.checks)) {
+      throw new Error('BAD_REQUEST')
+    }
+
+    const resp = await testPostulantRepository.saveIC(id, body.checks)
+    Console.debug(`saveIC response`, [resp])
+    res.json(resp);
+  } catch(err) {
+    Console.error(`saveIC error`, [err])
+    next(err)
+  }
+}
+
+module.exports = { getById, assign, search, saveIC }
