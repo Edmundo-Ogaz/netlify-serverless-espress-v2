@@ -255,41 +255,43 @@ async function registerPassword(user) {
   }
 }
 
-async function search({rut, name, email, companyId, profileId}) {
-  Console.debug.call(this, `search`, [rut, name, email, companyId, profileId])
+async function search(user) {
+  Console.debug.call(this, `search`, [user])
 
   let insertion = [q.Match(q.Index("users"))]
-  if (rut && utils.validateRut(rut)) {
-    insertion.push(q.Match(q.Index("user_by_rut"), rut))
+  if (user.rut && utils.validateRut(user.rut)) {
+    insertion.push(q.Match(q.Index("user_by_rut"), user.rut))
   }
 
   let filters = []
-  if (name && typeof name == 'string') {
-    filters.push(q.ContainsStr(q.Select(["firstName"], q.Var("result")), name))
-    filters.push(q.ContainsStr(q.Select(["lastName"], q.Var("result")), name))
+  if (user.name && typeof user.name == 'string') {
+    for (let name of user.name.split(' ')) {
+      filters.push(q.ContainsStr(q.Select(["firstName"], q.Var("result")), name))
+      filters.push(q.ContainsStr(q.Select(["lastName"], q.Var("result")), name))
+    }
   }
 
-  if (email && typeof email == 'string') {
+  if (user.email && typeof user.email == 'string') {
     insertion.push(q.Match(
-      q.Index("user_by_email"), email))
+      q.Index("user_by_email"), user.email))
   }
 
-  if (companyId && !isNaN(companyId)) {
+  if (user.companyId && !isNaN(user.companyId)) {
     insertion.push(q.Match(
       q.Index("users_by_company"),
       q.Select(
         ["ref"],
-        q.Get(q.Ref(q.Collection("company"), companyId))
+        q.Get(q.Ref(q.Collection("company"), user.companyId))
       )
     ))
   }
 
-  if (profileId && !isNaN(profileId)) {
+  if (user.profileId && !isNaN(user.profileId)) {
     insertion.push(q.Match(
       q.Index("users_by_profile"),
       q.Select(
         ["ref"],
-        q.Get(q.Ref(q.Collection("profile"), profileId))
+        q.Get(q.Ref(q.Collection("profile"), user.profileId))
       )
     ))
   }

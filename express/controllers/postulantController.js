@@ -88,7 +88,7 @@ async function search(req, res, next) {
     res.json(resp);
   } catch(e) {
     Console.error(`error`, [e])
-    next(err)
+    next(e)
   }
 }
 

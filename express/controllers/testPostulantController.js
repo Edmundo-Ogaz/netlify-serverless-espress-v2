@@ -80,7 +80,8 @@ async function search(req, res, next) {
       throw new Error('BAD_REQUEST')
     }
 
-    let resp = await searchRepository.search({rut, name, email, companyId, analystId, testId, stateId})
+    const param = {rut, name, email, companyId, analystId, testId, stateId}
+    let resp = await searchRepository.search(param)
 
     Console.debug(`search response`, [resp])
     res.json(resp)

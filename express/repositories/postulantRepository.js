@@ -139,23 +139,25 @@ async function edit(postulant) {
   }
 }
 
-async function search({rut, name, email}) {
-  Console.debug(`search`, [rut, name, email])
+async function search(postulant) {
+  Console.debug(`search`, [postulant])
 
   let insertion = [q.Match(q.Index("postulants"))]
-  if (rut && utils.validateRut(rut)) {
-    insertion.push(q.Match(q.Index("postulant_by_rut"), rut))
+  if (postulant.rut && utils.validateRut(postulant.rut)) {
+    insertion.push(q.Match(q.Index("postulant_by_rut"), postulant.rut))
   }
 
   let filters = []
-  if (name && typeof name == 'string') {
-    filters.push(q.ContainsStr(q.Select(["firstName"], q.Var("result")), name))
-    filters.push(q.ContainsStr(q.Select(["lastName"], q.Var("result")), name))
+  if (postulant.name && typeof postulant.name == 'string') {
+    for (let name of postulant.name.split(' ')) {
+      filters.push(q.ContainsStr(q.Select(["firstName"], q.Var("result")), name))
+      filters.push(q.ContainsStr(q.Select(["lastName"], q.Var("result")), name))
+    }
   }
 
-  if (email && typeof email == 'string') {
+  if (postulant.email && typeof postulant.email == 'string') {
     insertion.push(q.Match(
-      q.Index("postulant_by_email"), email))
+      q.Index("postulant_by_email"), postulant.email))
   }
 
   Console.debug(`query`, insertion)

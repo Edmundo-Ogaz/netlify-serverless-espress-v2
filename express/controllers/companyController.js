@@ -14,7 +14,7 @@ async function findAll(req, res, next) {
     Console.debug(`findAll response`, [])
     res.json(resp);
   } catch(err) {
-    Console.error(`findAll error`, err)
+    Console.error(`findAll error`, [err])
     next(err)
   }
 }

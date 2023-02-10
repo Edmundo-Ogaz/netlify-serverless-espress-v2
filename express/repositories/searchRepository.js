@@ -26,8 +26,10 @@ exports.search = (testPostulant) => {
 
   let filters = []
   if (testPostulant.name && typeof testPostulant.name == 'string') {
-    filters.push(q.ContainsStr(q.Select(["postulant", "firstName"], q.Var("result")), testPostulant.name))
-    filters.push(q.ContainsStr(q.Select(["postulant", "lastName"], q.Var("result")), testPostulant.name))
+    for (let name of testPostulant.name.split(' ')) {
+      filters.push(q.ContainsStr(q.Select(["postulant", "firstName"], q.Var("result")), name))
+      filters.push(q.ContainsStr(q.Select(["postulant", "lastName"], q.Var("result")), name))
+    }
   }
 
   if (testPostulant.email && typeof testPostulant.email == 'string') {
