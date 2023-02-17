@@ -2,6 +2,8 @@ const searchRepository = require('../repositories/searchRepository')
 const testPostulantRepository = require('../repositories/testPostulantRepository')
 const utils = require('../utils')
 
+const discProfile = require('../utils/discProfile.json')
+
 const BASE_NAME = 'testPostulantController'
 
 const Console = {
@@ -18,6 +20,11 @@ async function getById(req, res, next) {
     }
 
     const resp = await testPostulantRepository.getById(id)
+
+    if (resp.test.id == 2 && resp.answer && resp.answer.segment) {
+      const profile = discProfile.find(element => element.id === resp.answer.segment.profile_id)
+      resp.profile = profile
+    }
     Console.debug(`getById response`, [resp])
     res.json(resp)
   } catch(err) {
@@ -109,4 +116,22 @@ async function saveIC(req, res, next) {
   }
 }
 
-module.exports = { getById, assign, search, saveIC }
+async function saveDISC(req, res, next) {
+  try {
+    const id = req.params.id
+    const body = req.body
+    Console.debug(`saveDISC`, [id, body])
+    if (!id || !body || !Array.isArray(body.masChecks) || !Array.isArray(body.menosChecks)) {
+      throw new Error('BAD_REQUEST')
+    }
+
+    const resp = await testPostulantRepository.saveDISC(id, body.masChecks, body.menosChecks)
+    Console.debug(`saveDISC response`, [resp])
+    res.json(resp);
+  } catch(err) {
+    Console.error(`saveDISC error`, [err])
+    next(err)
+  }
+}
+
+module.exports = { getById, assign, search, saveIC, saveDISC }

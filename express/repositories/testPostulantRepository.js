@@ -1,4 +1,5 @@
 const utils = require('../utils')
+const discData = require('../utils/discData.json')
 const faunadb = require('faunadb')
 const q = faunadb.query
 
@@ -24,21 +25,26 @@ function getById(id) {
     },
     {
       id: q.Select(['ref', 'id'], q.Var('data')),
-     test: q.Select(['data'], q.Get(q.Select(['data', 'test'], q.Var('data')))),
-     postulant: q.Select(['data'], q.Get(q.Select(['data', 'postulant'], q.Var('data')))),
-     answer: 
-      q.If( q.ContainsPath(['data', 'answer'], q.Var('data')), 
-        q.Select(['data', 'answer'], q.Var('data')), 
-        {}
-      ),
-     date: 
-      q.If( q.ContainsPath(['data', 'updatedAt'], q.Var('data')), 
-          q.Select(['data', 'updatedAt'], q.Var('data')), 
+      test: {
+        id: q.Select(['ref', 'id'], q.Get(q.Select(['data', 'test'], q.Var('data')))),
+        name: q.Select(['data', 'name'], q.Get(q.Select(['data', 'test'], q.Var('data')))),
+      },
+      postulant: q.Select(['data'], q.Get(q.Select(['data', 'postulant'], q.Var('data')))),
+      answer: 
+        q.If( q.ContainsPath(['data', 'answer'], q.Var('data')), 
+          q.Select(['data', 'answer'], q.Var('data')), 
           {}
         ),
-     state: q.Select(['data'], q.Get(q.Select(['data', 'state'], q.Var('data')))),
-    }
-    )
+      date: 
+        q.If( q.ContainsPath(['data', 'updatedAt'], q.Var('data')), 
+            q.Select(['data', 'updatedAt'], q.Var('data')), 
+            {}
+          ),
+      state: {
+        id: q.Select(['ref', 'id'], q.Get(q.Select(['data', 'state'], q.Var('data')))),
+        name: q.Select(['data', 'name'], q.Get(q.Select(['data', 'state'], q.Var('data')))),
+      }
+    })
   )
   .then(async (response) => {
     return response
@@ -82,17 +88,17 @@ async function assign(assign) {
           },
         )
       )
-      console.log('test assign created')
+      Console.debug('assign created', [])
       return response.data
   } catch(e) {
-    console.error('test assign error', e)
+    Console.error('assign error', [e])
     throw new Error(e.message)
   }
 }
 
 async function saveIC(id, checks) {
   try {
-    console.log('test postulant ic save', id, checks)
+    Console.debug('saveIC', [id, checks])
     if (isNaN(id) || !Array.isArray(checks)) {
       throw new Error('BAD_REQUEST')
     }
@@ -165,13 +171,90 @@ async function saveIC(id, checks) {
           },
       )
     )
-    console.log('test postulant ic save created')
+    Console.debug('saveIC created', [])
     return response.data
   } catch(e) {
-    console.error('test postulant ic save error', e)
+    Console.error('saveIC error', [e])
     throw new Error(e.message)
   }
 }
 
-module.exports = { getById, saveIC, assign }
+async function saveDISC(id, masChecks, menosChecks) {
+  try {
+    const NUM_CARDS = 28
+    Console.debug('saveDISC', [id, masChecks, menosChecks])
+    if (isNaN(id) || !Array.isArray(masChecks) || !Array.isArray(menosChecks) || 
+      masChecks.length !== NUM_CARDS || menosChecks.length !== NUM_CARDS) {
+      throw new Error('BAD_REQUEST')
+    }
+
+    mas = ""
+    menos = ""
+    values = {
+        "D": 0,
+        "I": 0,
+        "E": 0,
+        "C": 0
+    }
+    segment = [0, 0, 0, 0]
+    scores = [
+        [-29, -8, -4, -1, 1, 4, 8],
+        [-29, -8, -4, -2, 1, 3, 6],
+        [-29, -11, -7, -4, 1, 2, 7],
+        [-29, -6, -3, -1, 2, 4, 8]
+    ]
+
+    for (let i = 0; i <  NUM_CARDS; i++) {
+      values[masChecks[i]] += 1
+      values[menosChecks[i]] -= 1
+    }
+    values_keys = Object.keys(values)
+    for (let i = 0; i < values_keys.length; i++) {
+      for (let j = 0; j < scores[0].length; j++) {
+        if (values[values_keys[i]] > scores[i][j]) {
+          segment[i] += 1
+        }
+      }
+    }
+
+    const db_segment_n = segment[0]*1000 + segment[1]*100 + segment[2]*10 + segment[3]
+    console.log('type', typeof discData)
+    const db_segment = discData.find(element => element.id === db_segment_n)
+
+    const client = new faunadb.Client({
+      secret: process.env.FAUNADB_SERVER_SECRET,
+      endpoint: process.env.FAUNADB_SERVER_ENDPOINT
+    })
+
+    const stateRef = await client.query(q.Select(["ref"], q.Get(q.Ref(q.Collection('test_state'), process.env.TEST_STATE_DONE_ID))))
+
+    const response = await client.query(
+      q.Update(
+        q.Ref(q.Collection('test_postulant'), id),
+          {
+            data: {
+              answer: {
+                positive: masChecks,
+                negative: menosChecks,
+                D: values["D"],
+                I: values["I"],
+                S: values["E"],
+                C: values["C"],
+                segment: db_segment,
+              },
+              state: stateRef,
+              updatedAt: q.Now(),
+            },
+          },
+      )
+    )
+    Console.debug('saveDISC created', [])
+    return response.data
+  } catch(e) {
+    Console.error('saveDISC error', [e])
+    throw new Error(e.message)
+  }
+}
+
+module.exports = { getById, assign, saveIC, saveDISC }
 

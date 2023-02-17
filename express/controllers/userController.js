@@ -101,7 +101,7 @@ async function login(req, res, next) {
     Console.debug(`login response`, [resp])
     res.json(resp);
   } catch(err) {
-    Console.error(`login error`, err)
+    Console.error(`login error`, [err])
     next(err)
   }
 }

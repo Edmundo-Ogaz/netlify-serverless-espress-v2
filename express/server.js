@@ -51,6 +51,7 @@ router.post("/tests/:testId/postulants/:postulantId", testPostulantController.as
 router.get("/tests/postulants", testPostulantController.search)
 router.get("/tests/postulants/:id", testPostulantController.getById)
 router.patch("/tests/postulants/ic/:id", testPostulantController.saveIC)
+router.patch("/tests/postulants/disc/:id", testPostulantController.saveDISC)
 
 app.use(cors({origin: '*'}));
 app.use(bodyParser.json());
