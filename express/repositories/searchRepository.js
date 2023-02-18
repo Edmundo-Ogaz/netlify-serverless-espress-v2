@@ -140,7 +140,12 @@ function getModel(object) {
       id: q.Select( ["ref", "id"], q.Get(q.Select(["data", "state"], object)) ),
       name: q.Select( ["data", "name"], q.Get(q.Select(["data", "state"], object)) )
     },
-    date: q.Select(["data", "createdAt"], object)
+    createdAt: q.Select(["data", "createdAt"], object),
+    updatedAt:
+      q.If( q.ContainsPath(['data', 'updatedAt'], object),
+        q.Select(['data', 'updatedAt'], object), 
+        {}
+      )
   }
 }
 

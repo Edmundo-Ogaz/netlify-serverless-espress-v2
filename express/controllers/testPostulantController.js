@@ -21,7 +21,7 @@ async function getById(req, res, next) {
 
     const resp = await testPostulantRepository.getById(id)
 
-    if (resp.test.id == 2 && resp.answer && resp.answer.segment) {
+    if (resp.test.id == process.env.TEST_STATE_DONE_ID && resp.answer && resp.answer.segment) {
       const profile = discProfile.find(element => element.id === resp.answer.segment.profile_id)
       resp.profile = profile
     }
