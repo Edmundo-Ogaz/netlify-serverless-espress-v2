@@ -363,9 +363,9 @@ function getModel(object) {
         },
         {}
       ),
-    updatedAt: 
-      q.If( q.ContainsPath(['data', 'updatedAt'], object), 
-        q.Select(['data', 'updatedAt'], object), 
+    updatedPassword: 
+      q.If( q.ContainsPath(['data', 'updatedPassword'], object), 
+        q.Select(['data', 'updatedPassword'], object), 
         {} 
       ),
   }
