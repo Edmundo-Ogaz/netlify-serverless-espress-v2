@@ -365,7 +365,7 @@ function getModel(object) {
       ),
     updatedPassword: 
       q.If( q.ContainsPath(['data', 'updatedPassword'], object), 
-        q.Select(['data', 'updatedPassword'], object), 
+        q.ToString(q.Select(['data', 'updatedPassword'], object)), 
         {} 
       ),
   }

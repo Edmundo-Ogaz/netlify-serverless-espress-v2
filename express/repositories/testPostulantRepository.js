@@ -35,7 +35,7 @@ function getById(id) {
           q.Select(['data', 'answer'], q.Var('data')), 
           {}
         ),
-      date: 
+      updatedAt: 
         q.If( q.ContainsPath(['data', 'updatedAt'], q.Var('data')), 
             q.Select(['data', 'updatedAt'], q.Var('data')), 
             {}

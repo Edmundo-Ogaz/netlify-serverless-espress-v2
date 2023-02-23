@@ -19,3 +19,7 @@ Update( Ref(Collection('user'), "1"), { data: {"company": Ref(Collection('compan
 Update( Ref(Collection('user'), "1"), { data: {"profile": Ref(Collection('profile'), "1")} })
 
 Delete(Ref(Collection('user'), '355777498773979648'))
+
+Create(Ref(Collection('postulant'), '1'), { data: { "rut": "test", "firstName": "test", "lastName": "test", "age": 40, "sexo": "masculino", "email": "test@test.cl", createdBy: Ref(Collection("user"), "1"), createdAt: Time("2023-02-05T12:51:58.753Z") } } )
+
+Create(Ref(Collection('test_postulant'), '1'), { data: { test: Ref(Collection("test"), "1"), postulant: Ref(Collection("postulant"), "1"), company: Ref(Collection("company"), "1"), analyst: Ref(Collection("user"), "1"), state: Ref(Collection("test_state"), "1"), createdBy: Ref(Collection("user"), "1"), createdAt: Time("2023-02-05T13:29:14.556Z"), } } )
